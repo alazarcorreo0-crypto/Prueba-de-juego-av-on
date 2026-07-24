@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AgroFlight 3D</title>
+    <title>AgroFlight 3D Pro - Nivel 2</title>
     <style>
         * {
             box-sizing: border-box;
@@ -27,74 +27,90 @@
             display: block;
         }
         
-        /* HUD */
+        /* HUD MEJORADO */
         #hud {
             position: absolute;
             top: 10px;
             left: 10px;
-            background: rgba(15, 23, 42, 0.85);
+            background: rgba(15, 23, 42, 0.88);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 10px 14px;
-            border-radius: 10px;
+            padding: 12px 16px;
+            border-radius: 12px;
             font-size: 11px;
             pointer-events: none;
             z-index: 10;
+            min-width: 170px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
         }
         .hud-row {
             display: flex;
-            gap: 10px;
             justify-content: space-between;
-            margin-bottom: 4px;
+            margin-bottom: 5px;
         }
         .hud-val {
             font-weight: bold;
             font-family: monospace;
+            font-size: 12px;
         }
         .hud-val.alt { color: #38bdf8; }
         .hud-val.spd { color: #facc15; }
         .hud-val.pwr { color: #f97316; }
+        .hud-val.cov { color: #4ade80; }
 
         .tank-bar-outer {
             width: 100%;
-            height: 6px;
+            height: 8px;
             background: #334155;
-            border-radius: 3px;
+            border-radius: 4px;
             overflow: hidden;
-            margin-top: 4px;
+            margin-top: 6px;
         }
         .tank-bar-inner {
             width: 100%;
             height: 100%;
-            background: #10b981;
+            background: linear-gradient(90deg, #10b981, #06b6d4);
             transition: width 0.1s linear;
         }
 
-        /* BANNER ASPERSIÓN */
-        #spray-status {
+        /* ALERTAS EN PANTALLA */
+        #alert-banner {
             position: absolute;
-            top: 12px;
-            right: 10px;
-            padding: 6px 14px;
-            border-radius: 12px;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 8px 20px;
+            border-radius: 20px;
             font-weight: bold;
-            font-size: 10px;
+            font-size: 12px;
             letter-spacing: 1px;
             text-transform: uppercase;
             opacity: 0;
             transition: opacity 0.2s;
             pointer-events: none;
-            z-index: 10;
+            z-index: 15;
+            text-align: center;
         }
-        #spray-status.active {
+        #alert-banner.spray {
             opacity: 1;
-            background: #10b981;
+            background: rgba(16, 185, 129, 0.9);
             color: #064e3b;
+        }
+        #alert-banner.warn {
+            opacity: 1;
+            background: rgba(239, 68, 68, 0.9);
+            color: #fff;
+            animation: blink 0.5s infinite alternate;
+        }
+
+        @keyframes blink {
+            from { opacity: 0.6; }
+            to { opacity: 1; }
         }
 
         /* CONTROLES TÁCTILES */
         .touch-btn {
             position: absolute;
-            background: rgba(0, 0, 0, 0.4);
+            background: rgba(0, 0, 0, 0.45);
             border: 2px solid rgba(255, 255, 255, 0.5);
             border-radius: 50%;
             display: flex;
@@ -104,13 +120,13 @@
             font-weight: bold;
             font-size: 18px;
             z-index: 20;
+            backdrop-filter: blur(4px);
         }
         .touch-btn:active {
             background: rgba(255, 255, 255, 0.5);
             transform: scale(0.95);
         }
 
-        /* D-PAD */
         #dpad-container {
             position: absolute;
             bottom: 20px;
@@ -124,7 +140,6 @@
         #btn-left { top: 45px; left: 0; width: 50px; height: 50px; }
         #btn-right { top: 45px; right: 0; width: 50px; height: 50px; }
 
-        /* POTENCIA Y ASPERSIÓN */
         #btn-pwr-up {
             bottom: 120px;
             right: 20px;
@@ -154,9 +169,8 @@
         }
         #btn-cam {
             top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 6px 16px;
+            right: 10px;
+            padding: 8px 16px;
             border-radius: 15px;
             background: rgba(0, 0, 0, 0.5);
             font-size: 11px;
@@ -173,16 +187,17 @@
 
     <!-- HUD -->
     <div id="hud">
-        <div class="hud-row"><span>ALT:</span> <span class="hud-val alt" id="val-alt">0m</span></div>
-        <div class="hud-row"><span>VEL:</span> <span class="hud-val spd" id="val-spd">0 km/h</span></div>
-        <div class="hud-row"><span>POT:</span> <span class="hud-val pwr" id="val-pwr">0%</span></div>
+        <div class="hud-row"><span>ALTITUD:</span> <span class="hud-val alt" id="val-alt">0m</span></div>
+        <div class="hud-row"><span>VELOCIDAD:</span> <span class="hud-val spd" id="val-spd">0 km/h</span></div>
+        <div class="hud-row"><span>POTENCIA:</span> <span class="hud-val pwr" id="val-pwr">0%</span></div>
+        <div class="hud-row"><span>MARCADO:</span> <span class="hud-val cov" id="val-cov">0 ha</span></div>
         <div class="tank-bar-outer"><div class="tank-bar-inner" id="bar-tank"></div></div>
     </div>
 
-    <div id="spray-status">ASPERSION</div>
+    <div id="alert-banner">ASPERSION ACTIVA</div>
     <div id="btn-cam">CAMARA</div>
 
-    <!-- D-PAD -->
+    <!-- CONTROLES -->
     <div id="dpad-container">
         <div class="touch-btn" id="btn-up">▲</div>
         <div class="touch-btn" id="btn-down">▼</div>
@@ -190,7 +205,6 @@
         <div class="touch-btn" id="btn-right">▶</div>
     </div>
 
-    <!-- POTENCIA Y SPRAY -->
     <div class="touch-btn" id="btn-pwr-up">+ W</div>
     <div class="touch-btn" id="btn-pwr-down">- S</div>
     <div class="touch-btn" id="btn-spray">SPRAY</div>
@@ -200,29 +214,30 @@
         const container = document.getElementById('canvas-container');
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x87ceeb);
+        scene.fog = new THREE.FogExp2(0x87ceeb, 0.001);
 
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         container.appendChild(renderer.domElement);
 
         // --- 2. ILUMINACIÓN ---
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
         scene.add(ambientLight);
 
-        const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
-        dirLight.position.set(100, 200, 100);
+        const dirLight = new THREE.DirectionalLight(0xfff5e6, 0.6);
+        dirLight.position.set(200, 400, 200);
         scene.add(dirLight);
 
-        // --- 3. TERRENO Y PARCELAS ---
+        // --- 3. TERRENO BASE ---
         const groundGeo = new THREE.PlaneGeometry(3000, 3000);
         const groundMat = new THREE.MeshBasicMaterial({ color: 0x4a7c20 });
         const ground = new THREE.Mesh(groundGeo, groundMat);
         ground.rotation.x = -Math.PI / 2;
         scene.add(ground);
 
-        // Pista
+        // Pista de Aterrizaje
         const runwayGeo = new THREE.PlaneGeometry(30, 400);
         const runwayMat = new THREE.MeshBasicMaterial({ color: 0x333333 });
         const runway = new THREE.Mesh(runwayGeo, runwayMat);
@@ -244,7 +259,64 @@
             }
         }
 
-        // --- 4. AVIÓN ---
+        // --- 4. OBSTÁCULOS (LÍNEAS DE ALTA TENSIÓN Y ÁRBOLES) ---
+        const obstacles = [];
+        const poleMat = new THREE.MeshBasicMaterial({ color: 0x475569 });
+        const wireMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+        const treeTrunkMat = new THREE.MeshBasicMaterial({ color: 0x5c3d11 });
+        const treeLeavesMat = new THREE.MeshBasicMaterial({ color: 0x1b4332 });
+
+        function createPowerLineZone(startZ, endZ, posX) {
+            let prevPolePos = null;
+            for(let z = startZ; z <= endZ; z += 120) {
+                const poleGroup = new THREE.Group();
+                
+                const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.4, 18), poleMat);
+                pole.position.y = 9;
+                poleGroup.add(pole);
+
+                const cross = new THREE.Mesh(new THREE.BoxGeometry(6, 0.3, 0.3), poleMat);
+                cross.position.y = 17;
+                poleGroup.add(cross);
+
+                poleGroup.position.set(posX, 0, z);
+                scene.add(poleGroup);
+                obstacles.push({ x: posX, y: 9, z: z, radius: 3, height: 18, type: 'poste' });
+
+                if(prevPolePos) {
+                    const wireGeo = new THREE.CylinderGeometry(0.05, 0.05, 120);
+                    const wire = new THREE.Mesh(wireGeo, wireMat);
+                    wire.position.set(posX, 17, z - 60);
+                    wire.rotation.x = Math.PI / 2;
+                    scene.add(wire);
+                }
+                prevPolePos = { x: posX, y: 17, z: z };
+            }
+        }
+
+        createPowerLineZone(-600, 600, 160);
+        createPowerLineZone(-600, 600, -160);
+
+        for(let i = 0; i < 60; i++) {
+            const tx = (Math.random() - 0.5) * 1600;
+            const tz = (Math.random() - 0.5) * 1600;
+            if(Math.abs(tx) < 180 && Math.abs(tz) < 300) continue;
+
+            const tree = new THREE.Group();
+            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1.2, 6), treeTrunkMat);
+            trunk.position.y = 3;
+            tree.add(trunk);
+
+            const leaves = new THREE.Mesh(new THREE.ConeGeometry(5, 14, 6), treeLeavesMat);
+            leaves.position.y = 10;
+            tree.add(leaves);
+
+            tree.position.set(tx, 0, tz);
+            scene.add(tree);
+            obstacles.push({ x: tx, y: 7, z: tz, radius: 4, height: 14, type: 'arbol' });
+        }
+
+        // --- 5. AVIÓN AIR TRACTOR ---
         const airplane = new THREE.Group();
         const yellowMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
         const blueMat = new THREE.MeshBasicMaterial({ color: 0x1d4ed8 });
@@ -284,14 +356,32 @@
         airplane.position.set(0, 0, 80);
         scene.add(airplane);
 
-        // --- 5. PARTICULAS ASPERSIÓN ---
+        // --- 6. SWATH PAINTING Y PARTICULAS ---
+        const sprayedTracks = [];
+        const trackMat = new THREE.MeshBasicMaterial({ color: 0x1b4332, transparent: true, opacity: 0.7 });
+        let areaCoveredSqm = 0;
+
+        function paintSwathSegment() {
+            if (airplane.position.y > 8) return;
+
+            const trackGeo = new THREE.PlaneGeometry(13.5, 3);
+            const trackMesh = new THREE.Mesh(trackGeo, trackMat);
+            trackMesh.rotation.x = -Math.PI / 2;
+            trackMesh.rotation.z = airplane.rotation.y;
+            trackMesh.position.set(airplane.position.x, 0.2, airplane.position.z);
+            scene.add(trackMesh);
+
+            sprayedTracks.push(trackMesh);
+            areaCoveredSqm += (13.5 * 3);
+        }
+
         const particleCount = 300;
         const particleGeo = new THREE.BufferGeometry();
         const particlePositions = new Float32Array(particleCount * 3);
         particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
 
         const particleMat = new THREE.PointsMaterial({
-            color: 0x00ffff, size: 2.0, transparent: true, opacity: 0.8
+            color: 0x00ffff, size: 2.2, transparent: true, opacity: 0.8
         });
         const sprayParticles = new THREE.Points(particleGeo, particleMat);
         scene.add(sprayParticles);
@@ -308,9 +398,10 @@
                 particleIndex = (particleIndex + 1) % particleCount;
             }
             sprayParticles.geometry.attributes.position.needsUpdate = true;
+            paintSwathSegment();
         }
 
-        // --- 6. CONTROLES Y FÍSICAS ---
+        // --- 7. CONTROLES Y FÍSICAS ---
         let throttle = 0, speed = 0, pitch = 0, roll = 0, yaw = 0;
         let isSpraying = false, tankLevel = 100, cameraMode = 0;
         const touchState = { up: false, down: false, left: false, right: false, pwrUp: false, pwrDown: false };
@@ -340,30 +431,51 @@
 
         function toggleSpray() {
             isSpraying = !isSpraying;
-            const statusElem = document.getElementById('spray-status');
-            if (isSpraying && tankLevel > 0) statusElem.classList.add('active');
-            else statusElem.classList.remove('active');
+            const statusElem = document.getElementById('alert-banner');
+            if (isSpraying && tankLevel > 0) {
+                statusElem.className = 'spray';
+                statusElem.textContent = 'ASPERSION ACTIVA';
+            } else {
+                statusElem.className = '';
+            }
         }
 
         document.getElementById('btn-cam').addEventListener('click', () => { cameraMode = (cameraMode + 1) % 2; });
 
+        function checkCollisions() {
+            const planePos = airplane.position;
+            const banner = document.getElementById('alert-banner');
+
+            for(let obs of obstacles) {
+                const dist = Math.sqrt(Math.pow(planePos.x - obs.x, 2) + Math.pow(planePos.z - obs.z, 2));
+                if(dist < obs.radius + 2 && planePos.y < obs.height) {
+                    banner.className = 'warn';
+                    banner.textContent = '¡PELIGRO: ALTA TENSIÓN / ÁRBOLES!';
+                    return;
+                }
+            }
+            if(!isSpraying) banner.className = '';
+        }
+
         const clock = new THREE.Clock();
 
         function updatePhysics(delta) {
-            if (touchState.pwrUp) throttle = Math.min(100, throttle + 40 * delta);
+            const weightFactor = 0.7 + (tankLevel / 100) * 0.5;
+
+            if (touchState.pwrUp) throttle = Math.min(100, throttle + (40 / weightFactor) * delta);
             if (touchState.pwrDown) throttle = Math.max(0, throttle - 50 * delta);
 
-            const targetSpeed = (throttle / 100) * 120;
-            speed += (targetSpeed - speed) * 1.8 * delta;
+            const targetSpeed = (throttle / 100) * 130;
+            speed += (targetSpeed - speed) * (1.8 / weightFactor) * delta;
             propGroup.rotation.z += (speed + 5) * delta * 0.5;
 
-            const ctrl = Math.min(1.0, speed / 30);
-            if (touchState.up) pitch = Math.min(0.6, pitch + 1.5 * delta * ctrl);
-            else if (touchState.down) pitch = Math.max(-0.6, pitch - 1.5 * delta * ctrl);
+            const ctrl = Math.min(1.0, speed / (35 * weightFactor));
+            if (touchState.up) pitch = Math.min(0.6, pitch + (1.5 / weightFactor) * delta * ctrl);
+            else if (touchState.down) pitch = Math.max(-0.6, pitch - (1.5 / weightFactor) * delta * ctrl);
             else pitch *= 0.90;
 
-            if (touchState.left) roll = Math.min(0.8, roll + 2.2 * delta * ctrl);
-            else if (touchState.right) roll = Math.max(-0.8, roll - 2.2 * delta * ctrl);
+            if (touchState.left) roll = Math.min(0.8, roll + (2.2 / weightFactor) * delta * ctrl);
+            else if (touchState.right) roll = Math.max(-0.8, roll - (2.2 / weightFactor) * delta * ctrl);
             else roll *= 0.88;
 
             airplane.rotation.z = -roll;
@@ -375,14 +487,17 @@
             if (airplane.position.y < 0.2) airplane.position.y = 0.2;
 
             if (isSpraying && tankLevel > 0) {
-                tankLevel = Math.max(0, tankLevel - 5.0 * delta);
+                tankLevel = Math.max(0, tankLevel - 4.5 * delta);
                 emitSpray();
-                if (tankLevel <= 0) document.getElementById('spray-status').classList.remove('active');
+                if (tankLevel <= 0) document.getElementById('alert-banner').className = '';
             }
+
+            checkCollisions();
 
             document.getElementById('val-alt').textContent = Math.round(airplane.position.y) + 'm';
             document.getElementById('val-spd').textContent = Math.round(speed) + ' km/h';
             document.getElementById('val-pwr').textContent = Math.round(throttle) + '%';
+            document.getElementById('val-cov').textContent = (areaCoveredSqm / 10000).toFixed(2) + ' ha';
             document.getElementById('bar-tank').style.width = tankLevel + '%';
         }
 
