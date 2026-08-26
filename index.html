@@ -3,22 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AgroFlight 3D Pro - Nivel 2</title>
+    <title>AgroFlight 3D Pro - Simulador Agrícola Realista</title>
     <style>
         * {
             box-sizing: border-box;
             user-select: none;
             -webkit-user-select: none;
             touch-action: manipulation;
-        }
-        body, html {
             margin: 0;
             padding: 0;
+        }
+        body, html {
             width: 100%;
             height: 100%;
             overflow: hidden;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #87ceeb;
+            background-color: #1a1a2e;
             color: #fff;
         }
         #canvas-container {
@@ -27,35 +27,38 @@
             display: block;
         }
         
-        /* HUD MEJORADO */
+        /* HUD Principal */
         #hud {
             position: absolute;
             top: 10px;
             left: 10px;
-            background: rgba(15, 23, 42, 0.88);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(15, 23, 42, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             padding: 12px 16px;
             border-radius: 12px;
             font-size: 11px;
             pointer-events: none;
             z-index: 10;
-            min-width: 170px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            min-width: 190px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            backdrop-filter: blur(8px);
         }
         .hud-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
+            font-size: 10px;
         }
         .hud-val {
             font-weight: bold;
-            font-family: monospace;
-            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
         }
         .hud-val.alt { color: #38bdf8; }
         .hud-val.spd { color: #facc15; }
         .hud-val.pwr { color: #f97316; }
         .hud-val.cov { color: #4ade80; }
+        .hud-val.pres { color: #f472b6; }
 
         .tank-bar-outer {
             width: 100%;
@@ -63,7 +66,7 @@
             background: #334155;
             border-radius: 4px;
             overflow: hidden;
-            margin-top: 6px;
+            margin-top: 4px;
         }
         .tank-bar-inner {
             width: 100%;
@@ -72,23 +75,61 @@
             transition: width 0.1s linear;
         }
 
-        /* ALERTAS EN PANTALLA */
-        #alert-banner {
+        /* Panel de Instrumentos */
+        #instrument-panel {
             position: absolute;
-            top: 20px;
+            bottom: 10px;
             left: 50%;
             transform: translateX(-50%);
-            padding: 8px 20px;
+            background: rgba(0, 0, 0, 0.85);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 10px 20px;
+            z-index: 15;
+            backdrop-filter: blur(8px);
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            min-width: 500px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .instrument-item {
+            text-align: center;
+            font-size: 9px;
+            color: #94a3b8;
+        }
+        .instrument-item .value {
+            font-size: 14px;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            color: #fff;
+            display: block;
+        }
+        .instrument-item .value.green { color: #4ade80; }
+        .instrument-item .value.yellow { color: #facc15; }
+        .instrument-item .value.red { color: #f87171; }
+        .instrument-item .value.blue { color: #38bdf8; }
+
+        /* Alertas */
+        #alert-banner {
+            position: absolute;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 24px;
             border-radius: 20px;
             font-weight: bold;
-            font-size: 12px;
+            font-size: 13px;
             letter-spacing: 1px;
             text-transform: uppercase;
             opacity: 0;
-            transition: opacity 0.2s;
+            transition: opacity 0.3s;
             pointer-events: none;
             z-index: 15;
             text-align: center;
+            backdrop-filter: blur(4px);
+            min-width: 200px;
         }
         #alert-banner.spray {
             opacity: 1;
@@ -101,35 +142,165 @@
             color: #fff;
             animation: blink 0.5s infinite alternate;
         }
+        #alert-banner.info {
+            opacity: 1;
+            background: rgba(59, 130, 246, 0.9);
+            color: #fff;
+        }
+        #alert-banner.success {
+            opacity: 1;
+            background: rgba(16, 185, 129, 0.9);
+            color: #064e3b;
+        }
 
         @keyframes blink {
             from { opacity: 0.6; }
             to { opacity: 1; }
         }
 
-        /* CONTROLES TÁCTILES */
+        /* Panel de Preparación */
+        #panel-preparacion {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.92);
+            padding: 20px 25px;
+            border-radius: 15px;
+            z-index: 30;
+            min-width: 380px;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: none;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        #panel-preparacion h3 {
+            margin: 0 0 15px 0;
+            text-align: center;
+            color: #4ade80;
+            font-size: 16px;
+        }
+        .quimico-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            font-size: 11px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .quimico-btn:hover { transform: scale(1.05); }
+        .quimico-btn:active { transform: scale(0.95); }
+        .quimico-btn.herbicida { background: #2e7d32; }
+        .quimico-btn.fungicida { background: #b8860b; }
+        .quimico-btn.insecticida { background: #8b0000; }
+        .quimico-btn.fertilizante { background: #4a7c59; }
+        .quimico-btn.regulador { background: #6b4c9a; }
+        .quimico-btn.coadyuvante { background: #c0392b; }
+
+        .barra-progreso {
+            width: 100%;
+            height: 22px;
+            background: #1e293b;
+            border-radius: 11px;
+            overflow: hidden;
+            margin: 5px 0;
+            position: relative;
+        }
+        .barra-progreso .fill {
+            height: 100%;
+            transition: width 0.3s;
+            border-radius: 11px;
+        }
+        .barra-progreso .label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 10px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        /* Tienda */
+        #tienda {
+            position: absolute;
+            top: 10px;
+            right: 70px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 15px 20px;
+            border-radius: 12px;
+            z-index: 25;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            display: none;
+            min-width: 250px;
+            backdrop-filter: blur(8px);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        #tienda h4 {
+            color: #fbbf24;
+            margin: 0 0 10px 0;
+            text-align: center;
+        }
+        .mejora-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin: 5px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+        }
+        .mejora-item .precio {
+            color: #fbbf24;
+            font-weight: bold;
+        }
+        .mejora-item button {
+            background: #fbbf24;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 10px;
+        }
+        .mejora-item button:hover { background: #f59e0b; }
+        .mejora-item .nivel {
+            color: #94a3b8;
+            font-size: 9px;
+        }
+
+        /* Controles */
         .touch-btn {
             position: absolute;
-            background: rgba(0, 0, 0, 0.45);
-            border: 2px solid rgba(255, 255, 255, 0.5);
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
             font-weight: bold;
-            font-size: 18px;
+            font-size: 16px;
             z-index: 20;
             backdrop-filter: blur(4px);
+            transition: all 0.1s;
+            cursor: pointer;
         }
         .touch-btn:active {
-            background: rgba(255, 255, 255, 0.5);
-            transform: scale(0.95);
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(0.92);
         }
 
         #dpad-container {
             position: absolute;
-            bottom: 20px;
+            bottom: 80px;
             left: 20px;
             width: 140px;
             height: 140px;
@@ -140,45 +311,123 @@
         #btn-left { top: 45px; left: 0; width: 50px; height: 50px; }
         #btn-right { top: 45px; right: 0; width: 50px; height: 50px; }
 
-        #btn-pwr-up {
-            bottom: 120px;
+        #btn-throttle-up {
+            bottom: 150px;
             right: 20px;
-            width: 55px;
-            height: 55px;
-            background: rgba(249, 115, 22, 0.4);
+            width: 50px;
+            height: 50px;
+            background: rgba(249, 115, 22, 0.5);
             border-color: rgba(249, 115, 22, 0.8);
+            font-size: 14px;
         }
-        #btn-pwr-down {
-            bottom: 55px;
+        #btn-throttle-down {
+            bottom: 90px;
             right: 20px;
-            width: 55px;
-            height: 55px;
-            background: rgba(249, 115, 22, 0.4);
+            width: 50px;
+            height: 50px;
+            background: rgba(249, 115, 22, 0.5);
             border-color: rgba(249, 115, 22, 0.8);
+            font-size: 14px;
         }
         #btn-spray {
-            bottom: 55px;
-            right: 90px;
-            width: 65px;
-            height: 65px;
+            bottom: 90px;
+            right: 85px;
+            width: 60px;
+            height: 60px;
             border-radius: 18px;
-            background: rgba(16, 185, 129, 0.4);
+            background: rgba(16, 185, 129, 0.5);
             border-color: rgba(16, 185, 129, 0.8);
-            font-size: 11px;
+            font-size: 10px;
             text-align: center;
+        }
+        #btn-flaps {
+            bottom: 160px;
+            right: 85px;
+            width: 50px;
+            height: 35px;
+            border-radius: 10px;
+            font-size: 9px;
+            background: rgba(59, 130, 246, 0.4);
+            border-color: rgba(59, 130, 246, 0.6);
+        }
+        #btn-brake {
+            bottom: 160px;
+            right: 145px;
+            width: 50px;
+            height: 35px;
+            border-radius: 10px;
+            font-size: 9px;
+            background: rgba(239, 68, 68, 0.4);
+            border-color: rgba(239, 68, 68, 0.6);
         }
         #btn-cam {
             top: 10px;
             right: 10px;
             padding: 8px 16px;
             border-radius: 15px;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.6);
             font-size: 11px;
-            border: 1px solid rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             z-index: 20;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+            color: white;
+        }
+        #btn-shop {
+            top: 10px;
+            right: 85px;
+            padding: 8px 16px;
+            border-radius: 15px;
+            background: rgba(251, 191, 36, 0.3);
+            font-size: 11px;
+            border: 1px solid rgba(251, 191, 36, 0.5);
+            z-index: 20;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+            color: #fbbf24;
+        }
+        #btn-mission {
+            top: 10px;
+            right: 160px;
+            padding: 8px 16px;
+            border-radius: 15px;
+            background: rgba(16, 185, 129, 0.3);
+            font-size: 11px;
+            border: 1px solid rgba(16, 185, 129, 0.5);
+            z-index: 20;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+            color: #4ade80;
+        }
+
+        .controls-hint {
+            position: absolute;
+            bottom: 10px;
+            right: 20px;
+            font-size: 8px;
+            color: rgba(255,255,255,0.3);
+            z-index: 5;
+            text-align: right;
+            line-height: 1.4;
+        }
+
+        @media (max-width: 600px) {
+            #instrument-panel { min-width: auto; gap: 10px; padding: 8px 12px; bottom: 5px; }
+            .instrument-item .value { font-size: 11px; }
+            #panel-preparacion { min-width: 90%; padding: 15px; bottom: 80px; }
+            #dpad-container { width: 110px; height: 110px; bottom: 70px; }
+            #btn-up, #btn-down, #btn-left, #btn-right { width: 40px; height: 40px; font-size: 14px; }
+            #btn-up { left: 35px; } #btn-down { left: 35px; }
+            #btn-left { top: 35px; } #btn-right { top: 35px; }
+            #btn-throttle-up { width: 45px; height: 45px; font-size: 12px; bottom: 130px; right: 10px; }
+            #btn-throttle-down { width: 45px; height: 45px; font-size: 12px; bottom: 75px; right: 10px; }
+            #btn-spray { width: 50px; height: 50px; font-size: 9px; bottom: 75px; right: 70px; }
+            #btn-flaps { width: 40px; height: 30px; font-size: 8px; bottom: 135px; right: 70px; }
+            #btn-brake { width: 40px; height: 30px; font-size: 8px; bottom: 135px; right: 120px; }
+            #hud { font-size: 9px; padding: 8px 12px; min-width: 140px; }
+            .controls-hint { display: none; }
         }
     </style>
-    <!-- Three.js CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
@@ -190,14 +439,136 @@
         <div class="hud-row"><span>ALTITUD:</span> <span class="hud-val alt" id="val-alt">0m</span></div>
         <div class="hud-row"><span>VELOCIDAD:</span> <span class="hud-val spd" id="val-spd">0 km/h</span></div>
         <div class="hud-row"><span>POTENCIA:</span> <span class="hud-val pwr" id="val-pwr">0%</span></div>
+        <div class="hud-row"><span>PRESIÓN:</span> <span class="hud-val pres" id="val-pres">0 bar</span></div>
         <div class="hud-row"><span>MARCADO:</span> <span class="hud-val cov" id="val-cov">0 ha</span></div>
+        <div class="hud-row"><span>💰 CRÉDITOS:</span> <span class="hud-val" id="val-credits" style="color:#fbbf24;">$500</span></div>
         <div class="tank-bar-outer"><div class="tank-bar-inner" id="bar-tank"></div></div>
     </div>
 
-    <div id="alert-banner">ASPERSION ACTIVA</div>
-    <div id="btn-cam">CAMARA</div>
+    <div id="alert-banner">BIENVENIDO PILOTO</div>
+    
+    <!-- Panel de Instrumentos -->
+    <div id="instrument-panel">
+        <div class="instrument-item">
+            <span>RPM</span>
+            <span class="value green" id="inst-rpm">0</span>
+        </div>
+        <div class="instrument-item">
+            <span>FLAPS</span>
+            <span class="value yellow" id="inst-flaps">0°</span>
+        </div>
+        <div class="instrument-item">
+            <span>PRESIÓN</span>
+            <span class="value blue" id="inst-presion">0 bar</span>
+        </div>
+        <div class="instrument-item">
+            <span>QUÍMICO</span>
+            <span class="value" id="inst-quimico" style="font-size:10px; color:#94a3b8;">NINGUNO</span>
+        </div>
+        <div class="instrument-item">
+            <span>MISIÓN</span>
+            <span class="value" id="inst-mision" style="font-size:10px; color:#4ade80;">ACTIVA</span>
+        </div>
+    </div>
 
-    <!-- CONTROLES -->
+    <!-- Panel de Preparación -->
+    <div id="panel-preparacion">
+        <h3>🚜 PREPARACIÓN DEL AVION</h3>
+        
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
+            <button class="quimico-btn herbicida" onclick="seleccionarQuimico('herbicida')">🌿 Herbicida</button>
+            <button class="quimico-btn fungicida" onclick="seleccionarQuimico('fungicida')">🍄 Fungicida</button>
+            <button class="quimico-btn insecticida" onclick="seleccionarQuimico('insecticida')">🐛 Insecticida</button>
+            <button class="quimico-btn fertilizante" onclick="seleccionarQuimico('fertilizante')">🌱 Fertilizante</button>
+            <button class="quimico-btn regulador" onclick="seleccionarQuimico('regulador')">📈 Regulador</button>
+            <button class="quimico-btn coadyuvante" onclick="seleccionarQuimico('coadyuvante')">💧 Coadyuvante</button>
+        </div>
+        
+        <div style="margin-bottom:10px;">
+            <div style="display:flex; justify-content:space-between; font-size:11px;">
+                <span>Químico: <strong id="quimico-nombre">Ninguno</strong></span>
+                <span>Dosis: <strong id="quimico-dosis">0 L/ha</strong></span>
+            </div>
+        </div>
+        
+        <div style="margin-bottom:8px;">
+            <div style="display:flex; justify-content:space-between; font-size:11px;">
+                <span>🧪 Químico Concentrado</span>
+                <span id="nivel-quimico-text">0%</span>
+            </div>
+            <div class="barra-progreso">
+                <div class="fill" id="barra-quimico" style="width:0%; background:linear-gradient(90deg, #f97316, #ef4444);"></div>
+                <span class="label" id="barra-quimico-label">0%</span>
+            </div>
+        </div>
+        
+        <div style="margin-bottom:8px;">
+            <div style="display:flex; justify-content:space-between; font-size:11px;">
+                <span>💧 Agua</span>
+                <span id="nivel-agua-text">0%</span>
+            </div>
+            <div class="barra-progreso">
+                <div class="fill" id="barra-agua" style="width:0%; background:linear-gradient(90deg, #38bdf8, #3b82f6);"></div>
+                <span class="label" id="barra-agua-label">0%</span>
+            </div>
+        </div>
+        
+        <div style="margin-bottom:8px;">
+            <div style="display:flex; justify-content:space-between; font-size:11px;">
+                <span>🔄 Calidad de Mezcla</span>
+                <span id="mezcla-porcentaje">0%</span>
+            </div>
+            <div class="barra-progreso">
+                <div class="fill" id="barra-mezcla" style="width:0%; background:linear-gradient(90deg, #4ade80, #22d3ee);"></div>
+                <span class="label" id="barra-mezcla-label">0%</span>
+            </div>
+        </div>
+        
+        <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
+            <button onclick="agregarQuimico()" style="flex:1; padding:10px; background:#f97316; border:none; border-radius:8px; color:white; font-weight:bold; cursor:pointer;">+ Químico</button>
+            <button onclick="agregarAgua()" style="flex:1; padding:10px; background:#3b82f6; border:none; border-radius:8px; color:white; font-weight:bold; cursor:pointer;">💧 Agua</button>
+            <button onclick="iniciarMezcla()" style="flex:1; padding:10px; background:#f59e0b; border:none; border-radius:8px; color:white; font-weight:bold; cursor:pointer;">🔄 Mezclar</button>
+        </div>
+        
+        <div style="margin-top:12px; display:flex; gap:8px;">
+            <button onclick="cargarAvion()" style="flex:2; padding:12px; background:#10b981; border:none; border-radius:10px; color:white; font-weight:bold; font-size:14px; cursor:pointer;">✅ CARGAR AVION</button>
+            <button onclick="cancelarPreparacion()" style="flex:1; padding:12px; background:#ef4444; border:none; border-radius:10px; color:white; font-weight:bold; cursor:pointer;">❌ Cancelar</button>
+        </div>
+    </div>
+
+    <!-- Tienda -->
+    <div id="tienda">
+        <h4>🏪 TIENDA DE MEJORAS</h4>
+        <div id="shop-items">
+            <div class="mejora-item">
+                <span>⚡ Motor Turbo</span>
+                <span class="nivel">Nivel <span id="motor-level">0</span></span>
+                <span class="precio">$<span id="motor-precio">500</span></span>
+                <button onclick="comprarMejora('motor')">Comprar</button>
+            </div>
+            <div class="mejora-item">
+                <span>🛢️ Tanque Grande</span>
+                <span class="nivel">Nivel <span id="tanque-level">0</span></span>
+                <span class="precio">$<span id="tanque-precio">300</span></span>
+                <button onclick="comprarMejora('tanque')">Comprar</button>
+            </div>
+            <div class="mejora-item">
+                <span>💨 Alta Presión</span>
+                <span class="nivel">Nivel <span id="presion-level">0</span></span>
+                <span class="precio">$<span id="presion-precio">400</span></span>
+                <button onclick="comprarMejora('presion')">Comprar</button>
+            </div>
+            <div class="mejora-item">
+                <span>🔫 Boquillas Premium</span>
+                <span class="nivel">Nivel <span id="boquilla-level">0</span></span>
+                <span class="precio">$<span id="boquilla-precio">250</span></span>
+                <button onclick="comprarMejora('boquilla')">Comprar</button>
+            </div>
+        </div>
+        <button onclick="cerrarTienda()" style="width:100%; padding:8px; margin-top:10px; background:#ef4444; border:none; border-radius:8px; color:white; font-weight:bold; cursor:pointer;">Cerrar Tienda</button>
+    </div>
+
+    <!-- Controles -->
     <div id="dpad-container">
         <div class="touch-btn" id="btn-up">▲</div>
         <div class="touch-btn" id="btn-down">▼</div>
@@ -205,66 +576,184 @@
         <div class="touch-btn" id="btn-right">▶</div>
     </div>
 
-    <div class="touch-btn" id="btn-pwr-up">+ W</div>
-    <div class="touch-btn" id="btn-pwr-down">- S</div>
+    <div class="touch-btn" id="btn-throttle-up">+</div>
+    <div class="touch-btn" id="btn-throttle-down">−</div>
     <div class="touch-btn" id="btn-spray">SPRAY</div>
+    <div class="touch-btn" id="btn-flaps">FLAPS</div>
+    <div class="touch-btn" id="btn-brake">FRENO</div>
+    
+    <div id="btn-cam">CÁMARA</div>
+    <div id="btn-shop">🏪 TIENDA</div>
+    <div id="btn-mission">📋 MISIÓN</div>
+
+    <div class="controls-hint">
+        W/S Potencia | A/D Giro | ↑/↓ Cabeceo | Q/E Flaps<br>
+        Espacio Spray | F Frenos | C Cámara
+    </div>
 
     <script>
-        // --- 1. CONFIGURACIÓN BASE ---
+        // ============================================
+        // SISTEMA DE MEJORAS Y ESTADO DEL JUGADOR
+        // ============================================
+        const estadoJugador = {
+            creditos: 500,
+            mejoras: {
+                motor: 0,
+                tanque: 0,
+                presion: 0,
+                boquilla: 0
+            }
+        };
+
+        const preciosMejoras = {
+            motor: [500, 800, 1200, 2000],
+            tanque: [300, 500, 800, 1200],
+            presion: [400, 600, 1000, 1600],
+            boquilla: [250, 400, 650, 1000]
+        };
+
+        const nombresMejoras = {
+            motor: 'Motor Turbo',
+            tanque: 'Tanque Grande',
+            presion: 'Alta Presión',
+            boquilla: 'Boquillas Premium'
+        };
+
+        // ============================================
+        // SISTEMA DE MISIONES
+        // ============================================
+        const misiones = [
+            { 
+                id: 1, 
+                cultivo: 'Campo "El Triunfo" Lote 123', 
+                quimico: 'herbicida', 
+                area: 15, 
+                recompensa: 200,
+                descripcion: 'Fumigación de herbicida en maizal'
+            },
+            { 
+                id: 2, 
+                cultivo: 'Finca "La Esperanza" Lote ABC', 
+                quimico: 'insecticida', 
+                area: 20, 
+                recompensa: 300,
+                descripcion: 'Control de plagas en soja'
+            },
+            { 
+                id: 3, 
+                cultivo: 'Campo "San José" Lote 789', 
+                quimico: 'fungicida', 
+                area: 12, 
+                recompensa: 250,
+                descripcion: 'Fungicida en cultivo de trigo'
+            },
+            { 
+                id: 4, 
+                cultivo: 'Finca "Los Andes" Lote XYZ', 
+                quimico: 'fertilizante', 
+                area: 25, 
+                recompensa: 350,
+                descripcion: 'Fertilización foliar en girasol'
+            }
+        ];
+
+        let misionActual = 0;
+        let areaMisionCompletada = 0;
+
+        // ============================================
+        // CONFIGURACIÓN 3D
+        // ============================================
         const container = document.getElementById('canvas-container');
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x87ceeb);
-        scene.fog = new THREE.FogExp2(0x87ceeb, 0.001);
+        scene.fog = new THREE.FogExp2(0x87ceeb, 0.0008);
 
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         container.appendChild(renderer.domElement);
 
-        // --- 2. ILUMINACIÓN ---
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+        // ============================================
+        // ILUMINACIÓN MEJORADA
+        // ============================================
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
         scene.add(ambientLight);
 
-        const dirLight = new THREE.DirectionalLight(0xfff5e6, 0.6);
+        const hemisphereLight = new THREE.HemisphereLight(0x87ceeb, 0x4a7c20, 0.4);
+        scene.add(hemisphereLight);
+
+        const dirLight = new THREE.DirectionalLight(0xfff5e6, 0.8);
         dirLight.position.set(200, 400, 200);
+        dirLight.castShadow = true;
+        dirLight.shadow.mapSize.width = 2048;
+        dirLight.shadow.mapSize.height = 2048;
         scene.add(dirLight);
 
-        // --- 3. TERRENO BASE ---
+        const fillLight = new THREE.DirectionalLight(0x8888ff, 0.3);
+        fillLight.position.set(-200, 100, -200);
+        scene.add(fillLight);
+
+        // ============================================
+        // TERRENO MEJORADO CON TEXTURAS
+        // ============================================
+        // Suelo base
         const groundGeo = new THREE.PlaneGeometry(3000, 3000);
-        const groundMat = new THREE.MeshBasicMaterial({ color: 0x4a7c20 });
+        const groundMat = new THREE.MeshLambertMaterial({ color: 0x4a7c20 });
         const ground = new THREE.Mesh(groundGeo, groundMat);
         ground.rotation.x = -Math.PI / 2;
+        ground.receiveShadow = true;
         scene.add(ground);
 
-        // Pista de Aterrizaje
+        // Pista de aterrizaje mejorada
         const runwayGeo = new THREE.PlaneGeometry(30, 400);
-        const runwayMat = new THREE.MeshBasicMaterial({ color: 0x333333 });
+        const runwayMat = new THREE.MeshLambertMaterial({ color: 0x333333 });
         const runway = new THREE.Mesh(runwayGeo, runwayMat);
         runway.rotation.x = -Math.PI / 2;
         runway.position.set(0, 0.1, -100);
+        runway.receiveShadow = true;
         scene.add(runway);
 
-        // Parcelas
-        const cropColors = [0x2e7d32, 0x388e3c, 0x558b2f, 0x827717];
+        // Marcas de pista
+        for(let i = -180; i <= 180; i += 20) {
+            const markGeo = new THREE.PlaneGeometry(2, 8);
+            const markMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
+            const mark = new THREE.Mesh(markGeo, markMat);
+            mark.rotation.x = -Math.PI / 2;
+            mark.position.set(0, 0.2, i - 100);
+            scene.add(mark);
+        }
+
+        // Parcelas de cultivo con texturas de colores realistas
+        const cropColors = [
+            0x2e7d32, 0x388e3c, 0x43a047, 0x4caf50,
+            0x558b2f, 0x689f38, 0x7cb342, 0x8bc34a,
+            0x827717, 0x9e9d24, 0xafb42b, 0xc0ca33
+        ];
+        
         for(let x = -800; x <= 800; x += 350) {
             for(let z = -800; z <= 800; z += 350) {
                 if(Math.abs(x) < 200 && Math.abs(z) < 300) continue;
                 const cropGeo = new THREE.PlaneGeometry(300, 300);
                 const color = cropColors[Math.floor(Math.random() * cropColors.length)];
-                const cropField = new THREE.Mesh(cropGeo, new THREE.MeshBasicMaterial({ color: color }));
+                const cropField = new THREE.Mesh(cropGeo, new THREE.MeshLambertMaterial({ color: color }));
                 cropField.rotation.x = -Math.PI / 2;
                 cropField.position.set(x, 0.15, z);
+                cropField.receiveShadow = true;
                 scene.add(cropField);
             }
         }
 
-        // --- 4. OBSTÁCULOS (LÍNEAS DE ALTA TENSIÓN Y ÁRBOLES) ---
+        // ============================================
+        // OBSTÁCULOS MEJORADOS
+        // ============================================
         const obstacles = [];
-        const poleMat = new THREE.MeshBasicMaterial({ color: 0x475569 });
-        const wireMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
-        const treeTrunkMat = new THREE.MeshBasicMaterial({ color: 0x5c3d11 });
-        const treeLeavesMat = new THREE.MeshBasicMaterial({ color: 0x1b4332 });
+        const poleMat = new THREE.MeshLambertMaterial({ color: 0x64748b });
+        const wireMat = new THREE.MeshLambertMaterial({ color: 0x1e293b });
+        const treeTrunkMat = new THREE.MeshLambertMaterial({ color: 0x5c3d11 });
+        const treeLeavesMat = new THREE.MeshLambertMaterial({ color: 0x1b4332 });
 
         function createPowerLineZone(startZ, endZ, posX) {
             let prevPolePos = null;
@@ -273,10 +762,12 @@
                 
                 const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.4, 18), poleMat);
                 pole.position.y = 9;
+                pole.castShadow = true;
                 poleGroup.add(pole);
 
                 const cross = new THREE.Mesh(new THREE.BoxGeometry(6, 0.3, 0.3), poleMat);
                 cross.position.y = 17;
+                cross.castShadow = true;
                 poleGroup.add(cross);
 
                 poleGroup.position.set(posX, 0, z);
@@ -297,7 +788,7 @@
         createPowerLineZone(-600, 600, 160);
         createPowerLineZone(-600, 600, -160);
 
-        for(let i = 0; i < 60; i++) {
+        for(let i = 0; i < 80; i++) {
             const tx = (Math.random() - 0.5) * 1600;
             const tz = (Math.random() - 0.5) * 1600;
             if(Math.abs(tx) < 180 && Math.abs(tz) < 300) continue;
@@ -305,10 +796,12 @@
             const tree = new THREE.Group();
             const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1.2, 6), treeTrunkMat);
             trunk.position.y = 3;
+            trunk.castShadow = true;
             tree.add(trunk);
 
             const leaves = new THREE.Mesh(new THREE.ConeGeometry(5, 14, 6), treeLeavesMat);
             leaves.position.y = 10;
+            leaves.castShadow = true;
             tree.add(leaves);
 
             tree.position.set(tx, 0, tz);
@@ -316,55 +809,178 @@
             obstacles.push({ x: tx, y: 7, z: tz, radius: 4, height: 14, type: 'arbol' });
         }
 
-        // --- 5. AVIÓN AIR TRACTOR ---
+        // ============================================
+        // AVIÓN AIR TRACTOR CON TEXTURAS REALISTAS
+        // ============================================
         const airplane = new THREE.Group();
-        const yellowMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
-        const blueMat = new THREE.MeshBasicMaterial({ color: 0x1d4ed8 });
-        const darkMat = new THREE.MeshBasicMaterial({ color: 0x1e293b });
-        const glassMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+        
+        // Materiales mejorados
+        const bodyMat = new THREE.MeshLambertMaterial({ color: 0xfacc15 });
+        const accentMat = new THREE.MeshLambertMaterial({ color: 0x1d4ed8 });
+        const darkMat = new THREE.MeshLambertMaterial({ color: 0x1e293b });
+        const glassMat = new THREE.MeshLambertMaterial({ 
+            color: 0x38bdf8, 
+            transparent: true, 
+            opacity: 0.7 
+        });
+        const metalMat = new THREE.MeshLambertMaterial({ color: 0x94a3b8 });
+        const redMat = new THREE.MeshLambertMaterial({ color: 0xef4444 });
 
-        const body = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.8, 7), yellowMat);
-        body.position.y = 1.2;
+        // Fuselaje principal
+        const body = new THREE.Mesh(new THREE.BoxGeometry(1.8, 2.0, 7.5), bodyMat);
+        body.position.y = 1.3;
+        body.castShadow = true;
         airplane.add(body);
 
-        const nose = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.4, 2), blueMat);
-        nose.position.set(0, 1.1, -4);
+        // Morro aerodinámico
+        const nose = new THREE.Mesh(new THREE.ConeGeometry(1.0, 2.5, 8), accentMat);
+        nose.position.set(0, 1.2, -4.8);
+        nose.rotation.x = Math.PI / 2;
+        nose.castShadow = true;
         airplane.add(nose);
 
-        const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.3, 1.2, 2), glassMat);
-        cabin.position.set(0, 2.2, 0.5);
+        // Cabina con detalle de marco
+        const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.3, 2.2), glassMat);
+        cabin.position.set(0, 2.5, 0.3);
+        cabin.castShadow = true;
         airplane.add(cabin);
 
-        const wing = new THREE.Mesh(new THREE.BoxGeometry(14, 0.15, 2.2), yellowMat);
-        wing.position.set(0, 1.2, -0.8);
+        // Marco de cabina
+        const frameMat = new THREE.MeshLambertMaterial({ color: 0x1e293b });
+        const frame = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.1, 2.3), frameMat);
+        frame.position.set(0, 2.0, 0.3);
+        airplane.add(frame);
+
+        // Ala principal con detalles
+        const wing = new THREE.Mesh(new THREE.BoxGeometry(15, 0.15, 2.5), bodyMat);
+        wing.position.set(0, 1.3, -0.8);
+        wing.castShadow = true;
         airplane.add(wing);
 
-        const sprayBar = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 13.5), darkMat);
+        // Puntas de ala
+        const tipMat = new THREE.MeshLambertMaterial({ color: 0xef4444 });
+        const tipLeft = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.15, 2.5), tipMat);
+        tipLeft.position.set(-8.0, 1.3, -0.8);
+        airplane.add(tipLeft);
+        
+        const tipRight = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.15, 2.5), tipMat);
+        tipRight.position.set(8.0, 1.3, -0.8);
+        airplane.add(tipRight);
+
+        // Alerones
+        const aileronMat = new THREE.MeshLambertMaterial({ color: 0x0ea5e9 });
+        const aileronLeft = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.1, 0.8), aileronMat);
+        aileronLeft.position.set(-6.5, 1.25, -1.5);
+        airplane.add(aileronLeft);
+        
+        const aileronRight = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.1, 0.8), aileronMat);
+        aileronRight.position.set(6.5, 1.25, -1.5);
+        airplane.add(aileronRight);
+
+        // Estabilizador horizontal
+        const stabilizer = new THREE.Mesh(new THREE.BoxGeometry(5.0, 0.12, 1.8), accentMat);
+        stabilizer.position.set(0, 2.2, 3.2);
+        stabilizer.castShadow = true;
+        airplane.add(stabilizer);
+
+        // Estabilizador vertical
+        const verticalStab = new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.2, 1.8), accentMat);
+        verticalStab.position.set(0, 2.8, 3.2);
+        verticalStab.castShadow = true;
+        airplane.add(verticalStab);
+
+        // Timón de profundidad
+        const rudder = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.8, 0.8), redMat);
+        rudder.position.set(0, 2.8, 4.0);
+        airplane.add(rudder);
+
+        // Barra de aspersión mejorada
+        const sprayBarMat = new THREE.MeshLambertMaterial({ color: 0x475569 });
+        const sprayBar = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 14.5), sprayBarMat);
         sprayBar.rotation.z = Math.PI / 2;
-        sprayBar.position.set(0, 0.8, -0.1);
+        sprayBar.position.set(0, 0.6, -0.1);
         airplane.add(sprayBar);
 
+        // Boquillas de aspersión
+        const nozzleMat = new THREE.MeshLambertMaterial({ color: 0x94a3b8 });
+        for(let i = -6.5; i <= 6.5; i += 1.3) {
+            const nozzle = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 0.3), nozzleMat);
+            nozzle.position.set(i, 0.45, -0.1);
+            airplane.add(nozzle);
+        }
+
+        // Hélice con detalle
         const propGroup = new THREE.Group();
         const propHub = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.5), darkMat);
         propHub.rotation.x = Math.PI / 2;
         propGroup.add(propHub);
-        const blade = new THREE.Mesh(new THREE.BoxGeometry(0.2, 2.8, 0.05), darkMat);
-        propGroup.add(blade);
-        propGroup.position.set(0, 1.1, -5.1);
+        
+        const bladeMat = new THREE.MeshLambertMaterial({ color: 0x1e293b });
+        for(let i = 0; i < 2; i++) {
+            const blade = new THREE.Mesh(new THREE.BoxGeometry(0.2, 2.8, 0.05), bladeMat);
+            blade.position.y = (i === 0) ? 1.4 : -1.4;
+            propGroup.add(blade);
+        }
+        propGroup.position.set(0, 1.2, -5.5);
         airplane.add(propGroup);
 
-        airplane.position.set(0, 0, 80);
+        // Motor (detalle)
+        const engineMat = new THREE.MeshLambertMaterial({ color: 0x475569 });
+        const engine = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.9, 0.8), engineMat);
+        engine.rotation.x = Math.PI / 2;
+        engine.position.set(0, 1.2, -4.2);
+        airplane.add(engine);
+
+        // Luces de navegación
+        const lightMat = new THREE.MeshLambertMaterial({ color: 0x22c55e });
+        const lightLeft = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), lightMat);
+        lightLeft.position.set(-7.5, 1.2, -0.8);
+        airplane.add(lightLeft);
+        
+        const lightMat2 = new THREE.MeshLambertMaterial({ color: 0xef4444 });
+        const lightRight = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), lightMat2);
+        lightRight.position.set(7.5, 1.2, -0.8);
+        airplane.add(lightRight);
+
+        // Tren de aterrizaje
+        const gearMat = new THREE.MeshLambertMaterial({ color: 0x1e293b });
+        for(let side = -1; side <= 1; side += 2) {
+            if(side === 0) continue;
+            const gearLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 0.6), gearMat);
+            gearLeg.position.set(side * 1.2, 0.1, 0.5);
+            airplane.add(gearLeg);
+            
+            const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.08), darkMat);
+            wheel.rotation.z = Math.PI / 2;
+            wheel.position.set(side * 1.2, 0.05, 0.5);
+            airplane.add(wheel);
+        }
+
+        // Rueda de cola
+        const tailWheel = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 8), darkMat);
+        tailWheel.position.set(0, 0.05, 3.5);
+        airplane.add(tailWheel);
+
+        airplane.position.set(0, 1, 80);
         scene.add(airplane);
 
-        // --- 6. SWATH PAINTING Y PARTICULAS ---
+        // ============================================
+        // SISTEMA DE ASPERSIÓN MEJORADO
+        // ============================================
         const sprayedTracks = [];
-        const trackMat = new THREE.MeshBasicMaterial({ color: 0x1b4332, transparent: true, opacity: 0.7 });
+        const trackMat = new THREE.MeshLambertMaterial({ 
+            color: 0x1b4332, 
+            transparent: true, 
+            opacity: 0.6 
+        });
         let areaCoveredSqm = 0;
+        let areaMision = 0;
 
         function paintSwathSegment() {
-            if (airplane.position.y > 8) return;
+            if (airplane.position.y > 10) return;
 
-            const trackGeo = new THREE.PlaneGeometry(13.5, 3);
+            const anchoAspersion = 13.5 + (estadoJugador.mejoras.boquilla * 1.5);
+            const trackGeo = new THREE.PlaneGeometry(anchoAspersion, 3);
             const trackMesh = new THREE.Mesh(trackGeo, trackMat);
             trackMesh.rotation.x = -Math.PI / 2;
             trackMesh.rotation.z = airplane.rotation.y;
@@ -372,76 +988,426 @@
             scene.add(trackMesh);
 
             sprayedTracks.push(trackMesh);
-            areaCoveredSqm += (13.5 * 3);
+            const area = anchoAspersion * 3;
+            areaCoveredSqm += area;
+            areaMision += area;
         }
 
-        const particleCount = 300;
+        // Partículas de spray mejoradas
+        const particleCount = 500;
         const particleGeo = new THREE.BufferGeometry();
         const particlePositions = new Float32Array(particleCount * 3);
+        const particleColors = new Float32Array(particleCount * 3);
         particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+        particleGeo.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
 
         const particleMat = new THREE.PointsMaterial({
-            color: 0x00ffff, size: 2.2, transparent: true, opacity: 0.8
+            size: 2.5,
+            transparent: true,
+            opacity: 0.7,
+            vertexColors: true,
+            blending: THREE.NormalBlending,
+            depthWrite: false
         });
         const sprayParticles = new THREE.Points(particleGeo, particleMat);
         scene.add(sprayParticles);
         let particleIndex = 0;
+        let colorQuimicoActual = new THREE.Color(0x00ffff);
 
         function emitSpray() {
-            if (!isSpraying || tankLevel <= 0) return;
+            if (!isSpraying || tankLevel <= 0 || avionEstado !== 'volando') return;
+            
             const pos = sprayParticles.geometry.attributes.position.array;
-            for (let i = -6; i <= 6; i += 2) {
+            const colors = sprayParticles.geometry.attributes.color.array;
+            const anchoAspersion = 13.5 + (estadoJugador.mejoras.boquilla * 1.5);
+            
+            for (let i = -anchoAspersion/2; i <= anchoAspersion/2; i += 1.0) {
                 const pt = new THREE.Vector3(i, 0.8, -0.1).applyMatrix4(airplane.matrixWorld);
-                pos[particleIndex * 3] = pt.x + (Math.random() - 0.5) * 0.3;
-                pos[particleIndex * 3 + 1] = pt.y + (Math.random() - 0.5) * 0.3;
-                pos[particleIndex * 3 + 2] = pt.z + (Math.random() - 0.5) * 0.3;
+                pos[particleIndex * 3] = pt.x + (Math.random() - 0.5) * 0.8;
+                pos[particleIndex * 3 + 1] = pt.y + (Math.random() - 0.5) * 0.5;
+                pos[particleIndex * 3 + 2] = pt.z + (Math.random() - 0.5) * 0.8;
+                
+                // Color según químico
+                const color = colorQuimicoActual.clone();
+                color.multiplyScalar(0.7 + Math.random() * 0.3);
+                colors[particleIndex * 3] = color.r;
+                colors[particleIndex * 3 + 1] = color.g;
+                colors[particleIndex * 3 + 2] = color.b;
+                
                 particleIndex = (particleIndex + 1) % particleCount;
             }
             sprayParticles.geometry.attributes.position.needsUpdate = true;
+            sprayParticles.geometry.attributes.color.needsUpdate = true;
             paintSwathSegment();
         }
 
-        // --- 7. CONTROLES Y FÍSICAS ---
+        // ============================================
+        // SISTEMA DE ESTADOS Y CONTROLES
+        // ============================================
+        let avionEstado = 'tierra';
+        let quimicoSeleccionado = null;
+        let nivelQuimico = 0;
+        let nivelAgua = 0;
+        let calidadMezcla = 0;
+        let tanqueTotal = 0;
         let throttle = 0, speed = 0, pitch = 0, roll = 0, yaw = 0;
-        let isSpraying = false, tankLevel = 100, cameraMode = 0;
-        const touchState = { up: false, down: false, left: false, right: false, pwrUp: false, pwrDown: false };
+        let isSpraying = false, tankLevel = 0, cameraMode = 0;
+        let flaps = 0;
+        let brake = false;
+        let presionAspersion = 2.0;
+        let misionCompletada = false;
 
+        const quimicos = {
+            herbicida: { nombre: 'Herbicida', color: 0x22c55e, dosis: 2.5, toxicidad: 'Media' },
+            fungicida: { nombre: 'Fungicida', color: 0xf59e0b, dosis: 3.0, toxicidad: 'Alta' },
+            insecticida: { nombre: 'Insecticida', color: 0xef4444, dosis: 1.8, toxicidad: 'Muy Alta' },
+            fertilizante: { nombre: 'Fertilizante', color: 0x10b981, dosis: 4.0, toxicidad: 'Baja' },
+            regulador: { nombre: 'Regulador', color: 0x8b5cf6, dosis: 1.2, toxicidad: 'Media' },
+            coadyuvante: { nombre: 'Coadyuvante', color: 0x06b6d4, dosis: 0.5, toxicidad: 'Baja' }
+        };
+
+        const touchState = { 
+            up: false, down: false, left: false, right: false, 
+            throttleUp: false, throttleDown: false 
+        };
+
+        // ============================================
+        // FUNCIONES DE LA TIENDA
+        // ============================================
+        function comprarMejora(tipo) {
+            const nivel = estadoJugador.mejoras[tipo];
+            const precios = preciosMejoras[tipo];
+            
+            if (nivel >= precios.length) {
+                mostrarAlerta('¡Ya tienes el nivel máximo!', 'info');
+                return;
+            }
+            
+            const precio = precios[nivel];
+            if (estadoJugador.creditos < precio) {
+                mostrarAlerta('💰 Créditos insuficientes', 'warn');
+                return;
+            }
+            
+            estadoJugador.creditos -= precio;
+            estadoJugador.mejoras[tipo]++;
+            actualizarTienda();
+            actualizarHUD();
+            mostrarAlerta(`✅ ${nombresMejoras[tipo]} mejorado a nivel ${estadoJugador.mejoras[tipo]}`, 'success');
+        }
+
+        function actualizarTienda() {
+            for (let tipo of ['motor', 'tanque', 'presion', 'boquilla']) {
+                const nivel = estadoJugador.mejoras[tipo];
+                const precios = preciosMejoras[tipo];
+                document.getElementById(`${tipo}-level`).textContent = nivel;
+                if (nivel < precios.length) {
+                    document.getElementById(`${tipo}-precio`).textContent = precios[nivel];
+                } else {
+                    document.getElementById(`${tipo}-precio`).textContent = 'MAX';
+                }
+            }
+        }
+
+        function abrirTienda() {
+            document.getElementById('tienda').style.display = 'block';
+            actualizarTienda();
+        }
+
+        function cerrarTienda() {
+            document.getElementById('tienda').style.display = 'none';
+        }
+
+        // ============================================
+        // FUNCIONES DE MISIONES
+        // ============================================
+        function mostrarMision() {
+            const mision = misiones[misionActual];
+            mostrarAlerta(
+                `📋 MISIÓN: ${mision.cultivo}\n` +
+                `🔬 ${mision.descripcion}\n` +
+                `📏 Área: ${mision.area} ha | 🏆 Recompensa: $${mision.recompensa}`,
+                'info'
+            );
+        }
+
+        function verificarMision() {
+            const mision = misiones[misionActual];
+            if (areaMision >= mision.area * 10000) {
+                misionCompletada = true;
+                estadoJugador.creditos += mision.recompensa;
+                mostrarAlerta(`🎉 ¡MISIÓN COMPLETADA! +$${mision.recompensa}`, 'success');
+                actualizarHUD();
+                
+                // Siguiente misión
+                misionActual = (misionActual + 1) % misiones.length;
+                areaMision = 0;
+                misionCompletada = false;
+                
+                setTimeout(() => {
+                    mostrarMision();
+                }, 2000);
+            }
+        }
+
+        // ============================================
+        // FUNCIONES DE PREPARACIÓN
+        // ============================================
+        function seleccionarQuimico(tipo) {
+            if (avionEstado !== 'tierra') return;
+            quimicoSeleccionado = quimicos[tipo];
+            document.getElementById('quimico-nombre').textContent = quimicoSeleccionado.nombre;
+            document.getElementById('quimico-dosis').textContent = quimicoSeleccionado.dosis + ' L/ha';
+            
+            // Actualizar color de muestra
+            const color = new THREE.Color(quimicoSeleccionado.color);
+            document.getElementById('quimico-nombre').style.color = '#' + color.getHexString();
+            mostrarAlerta(`✅ Seleccionado: ${quimicoSeleccionado.nombre}`, 'info');
+        }
+
+        function agregarQuimico() {
+            if (!quimicoSeleccionado || avionEstado !== 'tierra') {
+                mostrarAlerta('⚠️ Selecciona un químico primero', 'warn');
+                return;
+            }
+            if (nivelQuimico < 100) {
+                nivelQuimico = Math.min(100, nivelQuimico + 10);
+                actualizarBarras();
+            }
+        }
+
+        function agregarAgua() {
+            if (nivelQuimico === 0 || avionEstado !== 'tierra') {
+                mostrarAlerta('⚠️ Agrega químico primero', 'warn');
+                return;
+            }
+            if (nivelAgua < 100) {
+                nivelAgua = Math.min(100, nivelAgua + 10);
+                actualizarBarras();
+            }
+        }
+
+        function iniciarMezcla() {
+            if (nivelQuimico === 0 || nivelAgua === 0) {
+                mostrarAlerta('⚠️ Necesitas químico y agua para mezclar', 'warn');
+                return;
+            }
+            
+            avionEstado = 'mezclando';
+            let progreso = 0;
+            const intervalo = setInterval(() => {
+                progreso += 2;
+                calidadMezcla = Math.min(100, progreso);
+                document.getElementById('barra-mezcla').style.width = calidadMezcla + '%';
+                document.getElementById('barra-mezcla-label').textContent = calidadMezcla + '%';
+                document.getElementById('mezcla-porcentaje').textContent = calidadMezcla + '%';
+                
+                if (calidadMezcla >= 100) {
+                    clearInterval(intervalo);
+                    avionEstado = 'tierra';
+                    mostrarAlerta('✅ MEZCLA COMPLETA - Listo para cargar', 'success');
+                }
+            }, 150);
+        }
+
+        function actualizarBarras() {
+            document.getElementById('barra-quimico').style.width = nivelQuimico + '%';
+            document.getElementById('barra-quimico-label').textContent = nivelQuimico + '%';
+            document.getElementById('nivel-quimico-text').textContent = nivelQuimico + '%';
+            
+            document.getElementById('barra-agua').style.width = nivelAgua + '%';
+            document.getElementById('barra-agua-label').textContent = nivelAgua + '%';
+            document.getElementById('nivel-agua-text').textContent = nivelAgua + '%';
+        }
+
+        function cargarAvion() {
+            if (calidadMezcla < 100 || nivelQuimico === 0 || nivelAgua === 0) {
+                mostrarAlerta('⚠️ La mezcla no está completa', 'warn');
+                return;
+            }
+            
+            // Calcular capacidad con mejoras
+            const capacidadBase = 100;
+            const bonusTanque = estadoJugador.mejoras.tanque * 20;
+            const capacidadTotal = capacidadBase + bonusTanque;
+            
+            // Transferir mezcla al tanque
+            tanqueTotal = capacidadTotal;
+            tankLevel = capacidadTotal;
+            document.getElementById('bar-tank').style.width = '100%';
+            
+            // Configurar color del spray
+            const colorQuimico = new THREE.Color(quimicoSeleccionado.color);
+            colorQuimicoActual.copy(colorQuimico);
+            
+            // Configurar presión con mejoras
+            presionAspersion = 2.0 + (estadoJugador.mejoras.presion * 0.5);
+            document.getElementById('inst-presion').textContent = presionAspersion.toFixed(1) + ' bar';
+            
+            // Cerrar panel y activar vuelo
+            document.getElementById('panel-preparacion').style.display = 'none';
+            avionEstado = 'volando';
+            mostrarAlerta('🛫 AVION LISTO - ¡A volar!', 'success');
+            
+            // Dar potencia inicial
+            throttle = 15;
+            document.getElementById('inst-quimico').textContent = quimicoSeleccionado.nombre;
+            document.getElementById('inst-quimico').style.color = '#' + colorQuimico.getHexString();
+            
+            // Mostrar misión
+            mostrarMision();
+        }
+
+        function cancelarPreparacion() {
+            document.getElementById('panel-preparacion').style.display = 'none';
+            nivelQuimico = 0;
+            nivelAgua = 0;
+            calidadMezcla = 0;
+            quimicoSeleccionado = null;
+            actualizarBarras();
+            document.getElementById('barra-mezcla').style.width = '0%';
+            document.getElementById('barra-mezcla-label').textContent = '0%';
+            document.getElementById('mezcla-porcentaje').textContent = '0%';
+            document.getElementById('quimico-nombre').textContent = 'Ninguno';
+            document.getElementById('quimico-dosis').textContent = '0 L/ha';
+        }
+
+        // ============================================
+        // FUNCIONES DE UI
+        // ============================================
+        function mostrarAlerta(mensaje, tipo = 'info') {
+            const banner = document.getElementById('alert-banner');
+            banner.textContent = mensaje;
+            banner.className = tipo;
+            clearTimeout(banner._timeout);
+            banner._timeout = setTimeout(() => {
+                banner.className = '';
+            }, 4000);
+        }
+
+        function actualizarHUD() {
+            document.getElementById('val-credits').textContent = '$' + estadoJugador.creditos;
+        }
+
+        // ============================================
+        // BINDING DE CONTROLES
+        // ============================================
         function bindTouch(id, key) {
             const el = document.getElementById(id);
-            const start = (e) => { e.preventDefault(); touchState[key] = true; };
-            const end = (e) => { e.preventDefault(); touchState[key] = false; };
+            if (!el) return;
+            const start = (e) => { 
+                e.preventDefault(); 
+                if (key === 'spray') {
+                    toggleSpray();
+                    return;
+                }
+                touchState[key] = true; 
+            };
+            const end = (e) => { 
+                e.preventDefault(); 
+                if (key === 'spray') return;
+                touchState[key] = false; 
+            };
             el.addEventListener('touchstart', start, {passive: false});
             el.addEventListener('touchend', end, {passive: false});
+            el.addEventListener('touchcancel', end, {passive: false});
             el.addEventListener('mousedown', start);
             el.addEventListener('mouseup', end);
+            el.addEventListener('mouseleave', end);
         }
 
         bindTouch('btn-up', 'up');
         bindTouch('btn-down', 'down');
         bindTouch('btn-left', 'left');
         bindTouch('btn-right', 'right');
-        bindTouch('btn-pwr-up', 'pwrUp');
-        bindTouch('btn-pwr-down', 'pwrDown');
+        bindTouch('btn-throttle-up', 'throttleUp');
+        bindTouch('btn-throttle-down', 'throttleDown');
 
+        document.getElementById('btn-spray').addEventListener('click', toggleSpray);
         document.getElementById('btn-spray').addEventListener('touchstart', (e) => {
             e.preventDefault();
             toggleSpray();
         }, {passive: false});
-        document.getElementById('btn-spray').addEventListener('click', toggleSpray);
+
+        document.getElementById('btn-flaps').addEventListener('click', () => {
+            flaps = (flaps + 1) % 4;
+            document.getElementById('inst-flaps').textContent = (flaps * 10) + '°';
+            mostrarAlerta(`Flaps ${flaps * 10}°`, 'info');
+        });
+
+        document.getElementById('btn-brake').addEventListener('click', () => {
+            brake = !brake;
+            mostrarAlerta(brake ? '🛑 FRENOS ACTIVADOS' : 'FRENOS DESACTIVADOS', brake ? 'warn' : 'info');
+        });
+
+        document.getElementById('btn-cam').addEventListener('click', () => {
+            cameraMode = (cameraMode + 1) % 3;
+            const modos = ['EXTERNA', 'CABINA', 'PANORÁMICA'];
+            mostrarAlerta(`📷 Cámara: ${modos[cameraMode]}`, 'info');
+        });
+
+        document.getElementById('btn-shop').addEventListener('click', () => {
+            if (document.getElementById('tienda').style.display === 'block') {
+                cerrarTienda();
+            } else {
+                abrirTienda();
+            }
+        });
+
+        document.getElementById('btn-mission').addEventListener('click', mostrarMision);
+
+        // Teclado
+        document.addEventListener('keydown', (e) => {
+            switch(e.key.toLowerCase()) {
+                case 'w': touchState.throttleUp = true; e.preventDefault(); break;
+                case 's': touchState.throttleDown = true; e.preventDefault(); break;
+                case 'arrowup': touchState.up = true; e.preventDefault(); break;
+                case 'arrowdown': touchState.down = true; e.preventDefault(); break;
+                case 'arrowleft': touchState.left = true; e.preventDefault(); break;
+                case 'arrowright': touchState.right = true; e.preventDefault(); break;
+                case ' ': toggleSpray(); e.preventDefault(); break;
+                case 'q': flaps = (flaps + 1) % 4; document.getElementById('inst-flaps').textContent = (flaps * 10) + '°'; break;
+                case 'e': flaps = (flaps - 1 + 4) % 4; document.getElementById('inst-flaps').textContent = (flaps * 10) + '°'; break;
+                case 'f': brake = !brake; mostrarAlerta(brake ? '🛑 FRENOS' : 'FRENOS OFF', brake ? 'warn' : 'info'); break;
+                case 'c': document.getElementById('btn-cam').click(); break;
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            switch(e.key.toLowerCase()) {
+                case 'w': touchState.throttleUp = false; e.preventDefault(); break;
+                case 's': touchState.throttleDown = false; e.preventDefault(); break;
+                case 'arrowup': touchState.up = false; e.preventDefault(); break;
+                case 'arrowdown': touchState.down = false; e.preventDefault(); break;
+                case 'arrowleft': touchState.left = false; e.preventDefault(); break;
+                case 'arrowright': touchState.right = false; e.preventDefault(); break;
+            }
+        });
 
         function toggleSpray() {
+            if (avionEstado !== 'volando') {
+                mostrarAlerta('⚠️ El avión no está en vuelo', 'warn');
+                return;
+            }
+            if (tankLevel <= 0) {
+                mostrarAlerta('⚠️ Tanque vacío - Recarga en tierra', 'warn');
+                return;
+            }
             isSpraying = !isSpraying;
-            const statusElem = document.getElementById('alert-banner');
-            if (isSpraying && tankLevel > 0) {
-                statusElem.className = 'spray';
-                statusElem.textContent = 'ASPERSION ACTIVA';
+            const banner = document.getElementById('alert-banner');
+            if (isSpraying) {
+                banner.className = 'spray';
+                banner.textContent = '💨 ASPERSIÓN ACTIVA';
             } else {
-                statusElem.className = '';
+                banner.className = '';
+                banner.textContent = '⏸️ ASPERSIÓN PAUSADA';
+                setTimeout(() => { banner.className = ''; }, 2000);
             }
         }
 
-        document.getElementById('btn-cam').addEventListener('click', () => { cameraMode = (cameraMode + 1) % 2; });
-
+        // ============================================
+        // FÍSICA Y COLISIONES
+        // ============================================
         function checkCollisions() {
             const planePos = airplane.position;
             const banner = document.getElementById('alert-banner');
@@ -450,83 +1416,211 @@
                 const dist = Math.sqrt(Math.pow(planePos.x - obs.x, 2) + Math.pow(planePos.z - obs.z, 2));
                 if(dist < obs.radius + 2 && planePos.y < obs.height) {
                     banner.className = 'warn';
-                    banner.textContent = '¡PELIGRO: ALTA TENSIÓN / ÁRBOLES!';
-                    return;
+                    banner.textContent = '🚨 ¡PELIGRO: OBSTÁCULO!';
+                    return true;
                 }
             }
-            if(!isSpraying) banner.className = '';
+            return false;
         }
 
+        function aterrizarAvion() {
+            if (airplane.position.y < 0.5 && Math.abs(airplane.position.z) < 50 && speed < 30) {
+                avionEstado = 'tierra';
+                isSpraying = false;
+                throttle = 0;
+                document.getElementById('alert-banner').className = '';
+                mostrarAlerta('🛬 ATERRIZAJE EXITOSO', 'success');
+                
+                // Verificar misión
+                verificarMision();
+                
+                // Abrir panel de preparación después de un momento
+                setTimeout(() => {
+                    document.getElementById('panel-preparacion').style.display = 'block';
+                    // Resetear para nueva carga
+                    tankLevel = 0;
+                    document.getElementById('bar-tank').style.width = '0%';
+                    if (!misionCompletada) {
+                        mostrarAlerta('🔄 Recarga para continuar la misión', 'info');
+                    }
+                }, 2000);
+                return true;
+            }
+            return false;
+        }
+
+        // ============================================
+        // BUCLE PRINCIPAL
+        // ============================================
         const clock = new THREE.Clock();
+        let tiempoVuelo = 0;
 
         function updatePhysics(delta) {
-            const weightFactor = 0.7 + (tankLevel / 100) * 0.5;
-
-            if (touchState.pwrUp) throttle = Math.min(100, throttle + (40 / weightFactor) * delta);
-            if (touchState.pwrDown) throttle = Math.max(0, throttle - 50 * delta);
-
-            const targetSpeed = (throttle / 100) * 130;
-            speed += (targetSpeed - speed) * (1.8 / weightFactor) * delta;
-            propGroup.rotation.z += (speed + 5) * delta * 0.5;
-
-            const ctrl = Math.min(1.0, speed / (35 * weightFactor));
-            if (touchState.up) pitch = Math.min(0.6, pitch + (1.5 / weightFactor) * delta * ctrl);
-            else if (touchState.down) pitch = Math.max(-0.6, pitch - (1.5 / weightFactor) * delta * ctrl);
-            else pitch *= 0.90;
-
-            if (touchState.left) roll = Math.min(0.8, roll + (2.2 / weightFactor) * delta * ctrl);
-            else if (touchState.right) roll = Math.max(-0.8, roll - (2.2 / weightFactor) * delta * ctrl);
-            else roll *= 0.88;
-
-            airplane.rotation.z = -roll;
-            airplane.rotation.x = pitch;
-            yaw -= roll * 1.0 * delta * ctrl;
-            airplane.rotation.y = yaw;
-
-            airplane.translateOnAxis(new THREE.Vector3(0, 0, -1), (speed / 3.6) * delta);
-            if (airplane.position.y < 0.2) airplane.position.y = 0.2;
-
-            if (isSpraying && tankLevel > 0) {
-                tankLevel = Math.max(0, tankLevel - 4.5 * delta);
-                emitSpray();
-                if (tankLevel <= 0) document.getElementById('alert-banner').className = '';
+            if (avionEstado === 'tierra') {
+                // Permitir preparación
+                return;
             }
 
-            checkCollisions();
+            tiempoVuelo += delta;
+            
+            // Control de potencia con mejoras de motor
+            const motorBonus = 1 + (estadoJugador.mejoras.motor * 0.15);
+            const weightFactor = 0.6 + (tankLevel / 100) * 0.5;
 
+            if (touchState.throttleUp) {
+                throttle = Math.min(100, throttle + (60 / weightFactor) * delta * motorBonus);
+            }
+            if (touchState.throttleDown || brake) {
+                throttle = Math.max(0, throttle - 80 * delta);
+            }
+
+            // Velocidad con inercia
+            const targetSpeed = (throttle / 100) * (160 * motorBonus);
+            speed += (targetSpeed - speed) * (1.8 / weightFactor) * delta;
+            
+            // RPM
+            document.getElementById('inst-rpm').textContent = Math.round(speed * 4 + 200);
+            
+            // Propeller
+            propGroup.rotation.z += (speed + 10) * delta * 0.4;
+
+            // Control de actitud
+            const ctrl = Math.min(1.0, speed / (30 * weightFactor));
+            
+            // Cabeceo
+            if (touchState.up) {
+                pitch = Math.min(0.6, pitch + (1.8 / weightFactor) * delta * ctrl);
+            } else if (touchState.down) {
+                pitch = Math.max(-0.6, pitch - (1.8 / weightFactor) * delta * ctrl);
+            } else {
+                pitch *= 0.92;
+            }
+
+            // Alabeo
+            if (touchState.left) {
+                roll = Math.min(0.8, roll + (2.5 / weightFactor) * delta * ctrl);
+            } else if (touchState.right) {
+                roll = Math.max(-0.8, roll - (2.5 / weightFactor) * delta * ctrl);
+            } else {
+                roll *= 0.90;
+            }
+
+            // Aplicar rotaciones con suavidad
+            airplane.rotation.z = -roll * 0.8;
+            airplane.rotation.x = pitch * 0.7;
+            yaw -= roll * 1.2 * delta * ctrl;
+            airplane.rotation.y = yaw;
+
+            // Movimiento
+            const velocidadEfectiva = speed / 3.6 * (brake ? 0.3 : 1.0);
+            airplane.translateOnAxis(new THREE.Vector3(0, 0, -1), velocidadEfectiva * delta);
+            
+            // Gravedad y sustentación
+            const sustentacion = speed * 0.03 * (1 + pitch * 0.5);
+            airplane.position.y += (sustentacion - 0.5) * delta;
+            if (airplane.position.y < 0.2) {
+                airplane.position.y = 0.2;
+                // Verificar aterrizaje
+                if (aterrizarAvion()) return;
+            }
+
+            // Límite de altitud
+            if (airplane.position.y > 150) {
+                airplane.position.y = 150;
+                mostrarAlerta('⚠️ ALTITUD MÁXIMA', 'warn');
+            }
+
+            // Aspersión con consumo mejorado
+            if (isSpraying && tankLevel > 0) {
+                const consumo = 3.5 + (estadoJugador.mejoras.presion * 0.3);
+                tankLevel = Math.max(0, tankLevel - consumo * delta);
+                emitSpray();
+                document.getElementById('bar-tank').style.width = (tankLevel / tanqueTotal * 100) + '%';
+                
+                if (tankLevel <= 0) {
+                    isSpraying = false;
+                    document.getElementById('alert-banner').className = '';
+                    mostrarAlerta('⛽ TANQUE VACÍO - Regresa a la pista', 'warn');
+                }
+            }
+
+            // Colisiones
+            if (checkCollisions()) {
+                speed *= 0.5;
+                throttle = Math.max(0, throttle - 20);
+            }
+
+            // Actualizar HUD
             document.getElementById('val-alt').textContent = Math.round(airplane.position.y) + 'm';
             document.getElementById('val-spd').textContent = Math.round(speed) + ' km/h';
             document.getElementById('val-pwr').textContent = Math.round(throttle) + '%';
-            document.getElementById('val-cov').textContent = (areaCoveredSqm / 10000).toFixed(2) + ' ha';
-            document.getElementById('bar-tank').style.width = tankLevel + '%';
+            document.getElementById('val-pres').textContent = presionAspersion.toFixed(1) + ' bar';
+            const hectareas = areaCoveredSqm / 10000;
+            document.getElementById('val-cov').textContent = hectareas.toFixed(2) + ' ha';
+            document.getElementById('inst-presion').textContent = presionAspersion.toFixed(1) + ' bar';
+            
+            // Verificar progreso de misión
+            if (misionActual < misiones.length) {
+                const mision = misiones[misionActual];
+                const progreso = Math.min(100, (areaMision / (mision.area * 10000)) * 100);
+                document.getElementById('inst-mision').textContent = Math.round(progreso) + '%';
+            }
         }
 
         function updateCamera() {
-            if (cameraMode === 0) {
-                const offset = new THREE.Vector3(0, 5, 18).applyQuaternion(airplane.quaternion);
-                camera.position.copy(airplane.position).add(offset);
-                camera.lookAt(airplane.position.clone().add(new THREE.Vector3(0, 2, -10).applyQuaternion(airplane.quaternion)));
-            } else {
-                const cabinPos = airplane.position.clone().add(new THREE.Vector3(0, 2.3, 0.2).applyQuaternion(airplane.quaternion));
-                camera.position.copy(cabinPos);
-                camera.lookAt(airplane.position.clone().add(new THREE.Vector3(0, 2.0, -20).applyQuaternion(airplane.quaternion)));
+            const offset = new THREE.Vector3();
+            
+            switch(cameraMode) {
+                case 0: // Externa
+                    offset.set(0, 8, 25).applyQuaternion(airplane.quaternion);
+                    camera.position.copy(airplane.position).add(offset);
+                    camera.lookAt(airplane.position.clone().add(new THREE.Vector3(0, 2, -15).applyQuaternion(airplane.quaternion)));
+                    break;
+                case 1: // Cabina
+                    const cabinPos = airplane.position.clone().add(new THREE.Vector3(0, 2.8, 0.5).applyQuaternion(airplane.quaternion));
+                    camera.position.copy(cabinPos);
+                    camera.lookAt(airplane.position.clone().add(new THREE.Vector3(0, 2.5, -30).applyQuaternion(airplane.quaternion)));
+                    break;
+                case 2: // Panorámica
+                    const distance = 40 + (speed * 0.1);
+                    const angle = Date.now() * 0.0001;
+                    camera.position.set(
+                        airplane.position.x + Math.sin(angle) * distance,
+                        airplane.position.y + 15 + Math.sin(angle * 0.5) * 5,
+                        airplane.position.z + Math.cos(angle) * distance
+                    );
+                    camera.lookAt(airplane.position);
+                    break;
             }
         }
 
         function animate() {
             requestAnimationFrame(animate);
-            const delta = clock.getDelta();
+            const delta = Math.min(clock.getDelta(), 0.05);
             updatePhysics(delta);
             updateCamera();
             renderer.render(scene, camera);
         }
 
+        // ============================================
+        // EVENTOS DE VENTANA
+        // ============================================
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
+        // ============================================
+        // INICIO
+        // ============================================
+        // Mostrar panel de preparación al inicio
+        setTimeout(() => {
+            document.getElementById('panel-preparacion').style.display = 'block';
+            mostrarAlerta('🚜 Bienvenido Piloto - Prepara tu avión', 'info');
+        }, 1000);
+
+        // Iniciar simulación
         animate();
     </script>
 </body>
