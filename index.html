@@ -2,310 +2,269 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>AgroFlight Pro - Simulador Agrícola</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AgroFlight - Simulador Agrícola</title>
     <style>
         * {
+            margin: 0;
+            padding: 0;
             box-sizing: border-box;
             user-select: none;
             -webkit-user-select: none;
             touch-action: none;
-            margin: 0;
-            padding: 0;
         }
         body, html {
             width: 100%;
             height: 100%;
             overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: Arial, sans-serif;
             background: #1a1a2e;
             color: #fff;
-            position: fixed;
         }
         #canvas-container {
             width: 100%;
             height: 100%;
             display: block;
         }
-        
-        /* ==================== HUD ==================== */
+
+        /* HUD */
         #hud {
             position: absolute;
             top: 10px;
             left: 10px;
-            background: rgba(0, 0, 0, 0.85);
-            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.85);
             padding: 8px 12px;
-            border-radius: 12px;
-            font-size: 9px;
-            pointer-events: none;
+            border-radius: 10px;
+            font-size: 11px;
             z-index: 10;
             min-width: 150px;
-            backdrop-filter: blur(8px);
+            pointer-events: none;
         }
         .hud-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 2px;
-            font-size: 8px;
+            margin: 2px 0;
         }
-        .hud-val {
-            font-weight: bold;
-            font-family: 'Courier New', monospace;
-            font-size: 9px;
-        }
+        .hud-val { font-weight: bold; font-family: monospace; }
         .hud-val.alt { color: #38bdf8; }
         .hud-val.spd { color: #facc15; }
         .hud-val.pwr { color: #f97316; }
         .hud-val.cov { color: #4ade80; }
         .hud-val.credits { color: #fbbf24; }
-        .hud-val.status { color: #f472b6; }
 
-        .tank-bar-outer {
+        .tank-bar {
             width: 100%;
-            height: 5px;
+            height: 6px;
             background: #334155;
             border-radius: 3px;
+            margin-top: 4px;
             overflow: hidden;
-            margin-top: 3px;
         }
-        .tank-bar-inner {
-            width: 100%;
+        .tank-bar .fill {
             height: 100%;
             background: linear-gradient(90deg, #10b981, #06b6d4);
             transition: width 0.2s;
         }
 
-        /* ==================== ALERTAS ==================== */
-        #alert-banner {
+        /* Alertas */
+        #alert {
             position: absolute;
             top: 60px;
             left: 50%;
             transform: translateX(-50%);
-            padding: 6px 16px;
+            padding: 6px 18px;
             border-radius: 20px;
+            font-size: 12px;
             font-weight: bold;
-            font-size: 11px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
             opacity: 0;
             transition: opacity 0.3s;
-            pointer-events: none;
             z-index: 15;
+            pointer-events: none;
             text-align: center;
             backdrop-filter: blur(4px);
-            min-width: 180px;
-            max-width: 90%;
+            min-width: 200px;
         }
-        #alert-banner.spray { opacity: 1; background: rgba(16, 185, 129, 0.9); color: #064e3b; }
-        #alert-banner.warn { opacity: 1; background: rgba(239, 68, 68, 0.9); color: #fff; animation: blink 0.5s infinite alternate; }
-        #alert-banner.info { opacity: 1; background: rgba(59, 130, 246, 0.9); color: #fff; }
-        #alert-banner.success { opacity: 1; background: rgba(16, 185, 129, 0.9); color: #064e3b; }
+        #alert.show { opacity: 1; }
+        #alert.success { background: rgba(16,185,129,0.9); color: #064e3b; }
+        #alert.warn { background: rgba(239,68,68,0.9); color: #fff; animation: blink 0.5s infinite; }
+        #alert.info { background: rgba(59,130,246,0.9); color: #fff; }
 
         @keyframes blink {
-            from { opacity: 0.6; }
-            to { opacity: 1; }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
-        /* ==================== PANEL DE PREPARACIÓN ==================== */
-        #panel-preparacion {
+        /* Panel de preparación */
+        #prep-panel {
             position: absolute;
-            bottom: 180px;
+            bottom: 200px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.92);
+            background: rgba(0,0,0,0.92);
             padding: 16px 20px;
             border-radius: 15px;
             z-index: 30;
-            min-width: 340px;
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-width: 320px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
             display: none;
             max-height: 70vh;
             overflow-y: auto;
         }
-        #panel-preparacion h3 {
-            margin: 0 0 12px 0;
+        #prep-panel h3 {
             text-align: center;
             color: #4ade80;
             font-size: 14px;
+            margin-bottom: 10px;
         }
         .quimico-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
+            gap: 5px;
             margin-bottom: 10px;
         }
-        .quimico-btn {
-            padding: 8px;
+        .quimico-grid button {
+            padding: 6px;
             border: none;
-            border-radius: 8px;
-            color: white;
+            border-radius: 6px;
+            color: #fff;
             font-weight: bold;
             font-size: 9px;
             cursor: pointer;
-            transition: transform 0.2s;
         }
-        .quimico-btn:hover { transform: scale(1.03); }
-        .quimico-btn:active { transform: scale(0.95); }
-        .quimico-btn.herbicida { background: #2e7d32; }
-        .quimico-btn.fungicida { background: #b8860b; }
-        .quimico-btn.insecticida { background: #8b0000; }
-        .quimico-btn.fertilizante { background: #4a7c59; }
-        .quimico-btn.regulador { background: #6b4c9a; }
-        .quimico-btn.coadyuvante { background: #c0392b; }
-        .quimico-btn.selected { box-shadow: 0 0 20px rgba(255,255,255,0.3); }
+        .quimico-grid button:active { transform: scale(0.95); }
+        .q-herbicida { background: #2e7d32; }
+        .q-fungicida { background: #b8860b; }
+        .q-insecticida { background: #8b0000; }
+        .q-fertilizante { background: #4a7c59; }
+        .q-regulador { background: #6b4c9a; }
+        .q-coadyuvante { background: #c0392b; }
+        .q-selected { box-shadow: 0 0 15px rgba(255,255,255,0.3); }
 
-        .barra-progreso {
+        .barra {
             width: 100%;
-            height: 18px;
+            height: 16px;
             background: #1e293b;
-            border-radius: 9px;
+            border-radius: 8px;
             overflow: hidden;
             margin: 4px 0;
             position: relative;
         }
-        .barra-progreso .fill {
+        .barra .fill {
             height: 100%;
             transition: width 0.3s;
-            border-radius: 9px;
+            border-radius: 8px;
         }
-        .barra-progreso .label {
+        .barra .label {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 9px;
+            font-size: 8px;
             font-weight: bold;
             color: #fff;
-            text-shadow: 0 0 10px rgba(0,0,0,0.5);
         }
 
         .prep-row {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             margin: 6px 0;
             flex-wrap: wrap;
         }
         .prep-row button {
             flex: 1;
-            padding: 8px;
+            padding: 7px;
             border: none;
-            border-radius: 8px;
-            color: white;
+            border-radius: 6px;
+            color: #fff;
             font-weight: bold;
-            font-size: 10px;
+            font-size: 9px;
             cursor: pointer;
-            min-width: 60px;
+            min-width: 50px;
         }
         .prep-row button:active { transform: scale(0.95); }
-        .btn-quimico { background: #f97316; }
-        .btn-agua { background: #3b82f6; }
-        .btn-mezclar { background: #f59e0b; }
-        .btn-cargar { background: #10b981; flex: 2; font-size: 12px; }
-        .btn-cancelar { background: #ef4444; }
+        .btn-q { background: #f97316; }
+        .btn-a { background: #3b82f6; }
+        .btn-m { background: #f59e0b; }
+        .btn-c { background: #10b981; flex: 2; font-size: 11px; }
+        .btn-x { background: #ef4444; }
 
         .info-text {
-            font-size: 10px;
+            font-size: 9px;
             color: #94a3b8;
             text-align: center;
             margin: 4px 0;
         }
         .info-text strong { color: #fff; }
 
-        /* ==================== PALANCA DE POTENCIA ==================== */
-        #throttle-container {
+        /* Palanca de potencia */
+        #throttle {
             position: absolute;
             right: 15px;
             bottom: 180px;
-            width: 45px;
-            height: 140px;
+            width: 40px;
+            height: 130px;
             background: rgba(0,0,0,0.7);
-            border-radius: 22px;
+            border-radius: 20px;
             z-index: 25;
             border: 2px solid rgba(255,255,255,0.1);
-            backdrop-filter: blur(4px);
             touch-action: none;
         }
         #throttle-track {
             position: absolute;
-            top: 12px;
+            top: 10px;
             left: 50%;
             transform: translateX(-50%);
-            width: 5px;
-            height: calc(100% - 24px);
+            width: 4px;
+            height: calc(100% - 20px);
             background: rgba(255,255,255,0.1);
-            border-radius: 3px;
+            border-radius: 2px;
         }
         #throttle-handle {
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             background: radial-gradient(circle at 30% 30%, #f97316, #ea580c);
             border-radius: 50%;
             border: 2px solid rgba(255,255,255,0.3);
-            box-shadow: 0 0 20px rgba(249,115,22,0.3);
-            transition: bottom 0.05s;
             cursor: pointer;
             touch-action: none;
+            transition: bottom 0.05s;
         }
         #throttle-label {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 8px;
+            font-size: 7px;
             font-weight: bold;
-            color: white;
-            text-shadow: 0 0 10px rgba(0,0,0,0.5);
+            color: #fff;
             pointer-events: none;
         }
-        #throttle-icons {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 9px;
-            color: rgba(255,255,255,0.3);
-            pointer-events: none;
-        }
-        #throttle-icons.top { top: 4px; }
-        #throttle-icons.bottom { bottom: 4px; }
 
-        /* ==================== JOYSTICK ==================== */
-        #joystick-container {
+        /* Joystick */
+        #joystick {
             position: absolute;
             bottom: 30px;
             left: 50%;
             transform: translateX(-50%);
-            width: 120px;
-            height: 120px;
+            width: 110px;
+            height: 110px;
             border-radius: 50%;
             background: radial-gradient(circle at 40% 40%, rgba(0,0,0,0.5), rgba(0,0,0,0.8));
             border: 3px solid rgba(255,255,255,0.1);
             z-index: 20;
-            backdrop-filter: blur(4px);
             touch-action: none;
-        }
-        #joystick-base {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 65px;
-            height: 65px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(74,222,128,0.15), transparent);
-            border: 2px solid rgba(255,255,255,0.05);
         }
         #joystick-thumb {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 46px;
-            height: 46px;
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
             background: radial-gradient(circle at 35% 35%, #4ade80, #059669);
             box-shadow: 0 0 30px rgba(74,222,128,0.15);
@@ -314,70 +273,64 @@
             transition: all 0.05s;
         }
 
-        /* ==================== BOTONES DE CONTROL ==================== */
-        #control-buttons {
+        /* Botones de control */
+        #controls {
             position: absolute;
             bottom: 160px;
-            right: 75px;
-            display: flex;
-            gap: 6px;
-            z-index: 20;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        .ctrl-btn {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 10px;
-            font-size: 8px;
-            font-weight: bold;
-            color: white;
-            cursor: pointer;
-            backdrop-filter: blur(4px);
-            transition: transform 0.1s;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .ctrl-btn:active { transform: scale(0.92); }
-        .ctrl-btn.spray { background: rgba(16, 185, 129, 0.7); border: 1px solid rgba(16, 185, 129, 0.4); }
-        .ctrl-btn.flaps { background: rgba(59, 130, 246, 0.7); border: 1px solid rgba(59, 130, 246, 0.4); }
-        .ctrl-btn.brake { background: rgba(239, 68, 68, 0.7); border: 1px solid rgba(239, 68, 68, 0.4); }
-        .ctrl-btn.rescue { background: rgba(251, 191, 36, 0.7); border: 1px solid rgba(251, 191, 36, 0.4); }
-        .ctrl-btn.engine { background: rgba(74, 222, 128, 0.7); border: 1px solid rgba(74, 222, 128, 0.4); }
-        .ctrl-btn.active { background: rgba(16, 185, 129, 0.9); box-shadow: 0 0 20px rgba(16, 185, 129, 0.3); }
-
-        /* ==================== PANEL SUPERIOR ==================== */
-        #control-panel {
-            position: absolute;
-            top: 10px;
-            right: 10px;
+            right: 70px;
             display: flex;
             gap: 5px;
             z-index: 20;
             flex-wrap: wrap;
-            justify-content: flex-end;
-            max-width: 180px;
+            justify-content: center;
         }
-        .panel-btn {
+        .cbtn {
             padding: 5px 10px;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: none;
             border-radius: 8px;
+            font-size: 7px;
+            font-weight: bold;
+            color: #fff;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            backdrop-filter: blur(4px);
+        }
+        .cbtn:active { transform: scale(0.92); }
+        .cbtn-engine { background: rgba(74,222,128,0.6); border: 1px solid rgba(74,222,128,0.3); }
+        .cbtn-spray { background: rgba(16,185,129,0.6); border: 1px solid rgba(16,185,129,0.3); }
+        .cbtn-flaps { background: rgba(59,130,246,0.6); border: 1px solid rgba(59,130,246,0.3); }
+        .cbtn-brake { background: rgba(239,68,68,0.6); border: 1px solid rgba(239,68,68,0.3); }
+        .cbtn-rescue { background: rgba(251,191,36,0.6); border: 1px solid rgba(251,191,36,0.3); }
+        .cbtn.active { background: rgba(16,185,129,0.9); box-shadow: 0 0 20px rgba(16,185,129,0.3); }
+
+        /* Panel superior */
+        #top-panel {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 4px;
+            z-index: 20;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            max-width: 160px;
+        }
+        .tbtn {
+            padding: 4px 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 6px;
             background: rgba(0,0,0,0.6);
-            color: white;
-            font-size: 8px;
+            color: #fff;
+            font-size: 7px;
             font-weight: bold;
             cursor: pointer;
-            backdrop-filter: blur(4px);
-            transition: all 0.2s;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        .panel-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.15); }
-        .panel-btn.shop { border-color: rgba(251, 191, 36, 0.3); color: #fbbf24; }
-        .panel-btn.mission { border-color: rgba(16, 185, 129, 0.3); color: #4ade80; }
-        .panel-btn.save { border-color: rgba(59, 130, 246, 0.3); color: #38bdf8; }
+        .tbtn:active { transform: scale(0.9); }
 
-        /* ==================== MENÚ DE PAUSA ==================== */
+        /* Menú pausa */
         #pause-menu {
             position: absolute;
             top: 0;
@@ -391,72 +344,74 @@
             justify-content: center;
             backdrop-filter: blur(10px);
         }
-        #pause-menu .menu-box {
-            background: rgba(15, 23, 42, 0.95);
+        #pause-menu .box {
+            background: rgba(15,23,42,0.95);
             padding: 25px 30px;
-            border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
-            max-width: 350px;
+            border-radius: 15px;
+            max-width: 320px;
             width: 90%;
             text-align: center;
         }
         #pause-menu h2 { color: #4ade80; margin-bottom: 15px; font-size: 18px; }
-        .menu-btn {
+        .mbtn {
             display: block;
             width: 100%;
             padding: 10px;
-            margin: 6px 0;
+            margin: 5px 0;
             border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 10px;
+            border-radius: 8px;
             background: rgba(255,255,255,0.05);
-            color: white;
+            color: #fff;
             font-size: 13px;
             font-weight: bold;
             cursor: pointer;
-            transition: all 0.2s;
         }
-        .menu-btn:hover { background: rgba(255,255,255,0.1); }
-        .menu-btn:active { transform: scale(0.95); }
-        .menu-btn.primary { background: rgba(16, 185, 129, 0.3); border-color: rgba(16, 185, 129, 0.3); }
-        .menu-btn.danger { background: rgba(239, 68, 68, 0.3); border-color: rgba(239, 68, 68, 0.3); }
+        .mbtn:active { transform: scale(0.95); }
+        .mbtn-primary { background: rgba(16,185,129,0.3); border-color: rgba(16,185,129,0.3); }
+        .mbtn-danger { background: rgba(239,68,68,0.3); border-color: rgba(239,68,68,0.3); }
 
-        /* ==================== RESPONSIVE ==================== */
-        @media (max-width: 600px) {
-            #hud { font-size: 7px; padding: 5px 8px; min-width: 110px; }
-            .hud-row { font-size: 7px; }
-            .hud-val { font-size: 8px; }
-            #panel-preparacion { min-width: 90%; padding: 12px 15px; bottom: 160px; }
-            #panel-preparacion h3 { font-size: 12px; }
-            .quimico-grid { grid-template-columns: repeat(3, 1fr); gap: 4px; }
-            .quimico-btn { font-size: 7px; padding: 6px; }
-            #throttle-container { width: 38px; height: 110px; right: 8px; bottom: 160px; }
-            #throttle-handle { width: 28px; height: 28px; }
-            #throttle-label { font-size: 7px; }
-            #joystick-container { width: 100px; height: 100px; bottom: 20px; }
-            #joystick-thumb { width: 38px; height: 38px; }
-            #control-buttons { bottom: 140px; right: 55px; gap: 4px; }
-            .ctrl-btn { padding: 4px 8px; font-size: 7px; }
-            #control-panel { top: 5px; right: 5px; gap: 3px; max-width: 130px; }
-            .panel-btn { padding: 4px 7px; font-size: 7px; }
-            .prep-row button { padding: 6px; font-size: 8px; }
-            .btn-cargar { font-size: 10px; }
-            #alert-banner { font-size: 9px; padding: 5px 12px; min-width: 140px; top: 45px; }
-            #pause-menu .menu-box { padding: 18px 20px; }
-            #pause-menu h2 { font-size: 16px; }
-            .menu-btn { padding: 8px; font-size: 11px; }
+        /* GPS - Flecha direccional */
+        #gps-arrow {
+            position: absolute;
+            bottom: 200px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 30px;
+            color: #4ade80;
+            z-index: 15;
+            text-shadow: 0 0 20px rgba(74,222,128,0.5);
+            display: none;
+            pointer-events: none;
+            opacity: 0.8;
         }
-        @media (orientation: landscape) and (max-height: 500px) {
-            #panel-preparacion { bottom: 140px; min-width: 70%; padding: 10px 14px; }
-            #panel-preparacion h3 { font-size: 11px; margin-bottom: 8px; }
-            .quimico-grid { grid-template-columns: repeat(4, 1fr); gap: 3px; }
-            .quimico-btn { font-size: 7px; padding: 4px; }
-            #throttle-container { height: 90px; width: 35px; bottom: 130px; right: 5px; }
+        #gps-distance {
+            position: absolute;
+            bottom: 170px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            color: #94a3b8;
+            z-index: 15;
+            display: none;
+            pointer-events: none;
+            font-family: monospace;
+        }
+
+        @media (max-width: 600px) {
+            #hud { font-size: 9px; padding: 5px 8px; min-width: 120px; }
+            #prep-panel { min-width: 90%; padding: 12px 15px; bottom: 170px; }
+            #prep-panel h3 { font-size: 12px; }
+            .quimico-grid button { font-size: 7px; padding: 4px; }
+            #throttle { width: 35px; height: 110px; right: 8px; bottom: 150px; }
             #throttle-handle { width: 24px; height: 24px; }
-            #joystick-container { width: 80px; height: 80px; bottom: 15px; }
-            #joystick-thumb { width: 32px; height: 32px; }
-            #control-buttons { bottom: 120px; right: 45px; }
-            .ctrl-btn { padding: 3px 6px; font-size: 6px; }
-            .prep-row button { padding: 4px; font-size: 7px; }
+            #joystick { width: 90px; height: 90px; bottom: 20px; }
+            #joystick-thumb { width: 34px; height: 34px; }
+            #controls { bottom: 130px; right: 50px; gap: 3px; }
+            .cbtn { padding: 3px 6px; font-size: 6px; }
+            #top-panel { top: 5px; right: 5px; max-width: 120px; }
+            .tbtn { padding: 3px 6px; font-size: 6px; }
+            #gps-arrow { font-size: 24px; bottom: 170px; }
+            #gps-distance { font-size: 9px; bottom: 145px; }
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -465,153 +420,114 @@
 
     <div id="canvas-container"></div>
 
-    <!-- ==================== HUD ==================== -->
+    <!-- HUD -->
     <div id="hud">
-        <div class="hud-row"><span>ALTITUD:</span> <span class="hud-val alt" id="val-alt">0m</span></div>
-        <div class="hud-row"><span>VELOCIDAD:</span> <span class="hud-val spd" id="val-spd">0 km/h</span></div>
-        <div class="hud-row"><span>POTENCIA:</span> <span class="hud-val pwr" id="val-pwr">0%</span></div>
-        <div class="hud-row"><span>MARCADO:</span> <span class="hud-val cov" id="val-cov">0 ha</span></div>
-        <div class="hud-row"><span>💰 CRÉDITOS:</span> <span class="hud-val credits" id="val-credits">$500</span></div>
-        <div class="hud-row"><span>🔄 ESTADO:</span> <span class="hud-val status" id="val-status">EN TIERRA</span></div>
-        <div class="tank-bar-outer"><div class="tank-bar-inner" id="bar-tank"></div></div>
+        <div class="hud-row"><span>ALTITUD:</span> <span class="hud-val alt" id="v-alt">0m</span></div>
+        <div class="hud-row"><span>VELOCIDAD:</span> <span class="hud-val spd" id="v-spd">0 km/h</span></div>
+        <div class="hud-row"><span>POTENCIA:</span> <span class="hud-val pwr" id="v-pwr">0%</span></div>
+        <div class="hud-row"><span>MARCADO:</span> <span class="hud-val cov" id="v-cov">0 ha</span></div>
+        <div class="hud-row"><span>💰 CRÉDITOS:</span> <span class="hud-val credits" id="v-credits">$500</span></div>
+        <div class="tank-bar"><div class="fill" id="v-tank" style="width:0%"></div></div>
     </div>
 
-    <!-- ==================== ALERTAS ==================== -->
-    <div id="alert-banner">BIENVENIDO PILOTO</div>
+    <!-- Alertas -->
+    <div id="alert"></div>
 
-    <!-- ==================== PANEL DE PREPARACIÓN ==================== -->
-    <div id="panel-preparacion">
+    <!-- GPS -->
+    <div id="gps-arrow">⬆️</div>
+    <div id="gps-distance">0 m</div>
+
+    <!-- Panel de preparación -->
+    <div id="prep-panel">
         <h3>🚜 PREPARACIÓN DEL AVION</h3>
-        
         <div class="quimico-grid">
-            <button class="quimico-btn herbicida" onclick="seleccionarQuimico('herbicida')">🌿 Herbicida</button>
-            <button class="quimico-btn fungicida" onclick="seleccionarQuimico('fungicida')">🍄 Fungicida</button>
-            <button class="quimico-btn insecticida" onclick="seleccionarQuimico('insecticida')">🐛 Insecticida</button>
-            <button class="quimico-btn fertilizante" onclick="seleccionarQuimico('fertilizante')">🌱 Fertilizante</button>
-            <button class="quimico-btn regulador" onclick="seleccionarQuimico('regulador')">📈 Regulador</button>
-            <button class="quimico-btn coadyuvante" onclick="seleccionarQuimico('coadyuvante')">💧 Coadyuvante</button>
+            <button class="q-herbicida" onclick="selQuimico('herbicida')">🌿 Herbicida</button>
+            <button class="q-fungicida" onclick="selQuimico('fungicida')">🍄 Fungicida</button>
+            <button class="q-insecticida" onclick="selQuimico('insecticida')">🐛 Insecticida</button>
+            <button class="q-fertilizante" onclick="selQuimico('fertilizante')">🌱 Fertilizante</button>
+            <button class="q-regulador" onclick="selQuimico('regulador')">📈 Regulador</button>
+            <button class="q-coadyuvante" onclick="selQuimico('coadyuvante')">💧 Coadyuvante</button>
         </div>
-        
-        <div class="info-text">Químico: <strong id="quimico-nombre">Ninguno</strong> | Dosis: <strong id="quimico-dosis">0 L/ha</strong></div>
-        
+        <div class="info-text">Químico: <strong id="q-nombre">Ninguno</strong> | Dosis: <strong id="q-dosis">0 L/ha</strong></div>
         <div>
-            <div style="display:flex; justify-content:space-between; font-size:9px;">
-                <span>🧪 Químico</span>
-                <span id="nivel-quimico-text">0%</span>
-            </div>
-            <div class="barra-progreso">
-                <div class="fill" id="barra-quimico" style="width:0%; background:linear-gradient(90deg, #f97316, #ef4444);"></div>
-                <span class="label" id="barra-quimico-label">0%</span>
-            </div>
+            <div style="display:flex;justify-content:space-between;font-size:9px;"><span>🧪 Químico</span><span id="q-porc">0%</span></div>
+            <div class="barra"><div class="fill" id="q-bar" style="width:0%;background:linear-gradient(90deg,#f97316,#ef4444);"></div><span class="label" id="q-label">0%</span></div>
         </div>
-        
         <div>
-            <div style="display:flex; justify-content:space-between; font-size:9px;">
-                <span>💧 Agua</span>
-                <span id="nivel-agua-text">0%</span>
-            </div>
-            <div class="barra-progreso">
-                <div class="fill" id="barra-agua" style="width:0%; background:linear-gradient(90deg, #38bdf8, #3b82f6);"></div>
-                <span class="label" id="barra-agua-label">0%</span>
-            </div>
+            <div style="display:flex;justify-content:space-between;font-size:9px;"><span>💧 Agua</span><span id="a-porc">0%</span></div>
+            <div class="barra"><div class="fill" id="a-bar" style="width:0%;background:linear-gradient(90deg,#38bdf8,#3b82f6);"></div><span class="label" id="a-label">0%</span></div>
         </div>
-        
         <div>
-            <div style="display:flex; justify-content:space-between; font-size:9px;">
-                <span>🔄 Mezcla</span>
-                <span id="mezcla-porcentaje">0%</span>
-            </div>
-            <div class="barra-progreso">
-                <div class="fill" id="barra-mezcla" style="width:0%; background:linear-gradient(90deg, #4ade80, #22d3ee);"></div>
-                <span class="label" id="barra-mezcla-label">0%</span>
-            </div>
+            <div style="display:flex;justify-content:space-between;font-size:9px;"><span>🔄 Mezcla</span><span id="m-porc">0%</span></div>
+            <div class="barra"><div class="fill" id="m-bar" style="width:0%;background:linear-gradient(90deg,#4ade80,#22d3ee);"></div><span class="label" id="m-label">0%</span></div>
         </div>
-        
         <div class="prep-row">
-            <button class="btn-quimico" onclick="agregarQuimico()">+ Químico</button>
-            <button class="btn-agua" onclick="agregarAgua()">💧 Agua</button>
-            <button class="btn-mezclar" onclick="iniciarMezcla()">🔄 Mezclar</button>
+            <button class="btn-q" onclick="addQuimico()">+ Químico</button>
+            <button class="btn-a" onclick="addAgua()">💧 Agua</button>
+            <button class="btn-m" onclick="mezclar()">🔄 Mezclar</button>
         </div>
-        
         <div class="prep-row">
-            <button class="btn-cargar" onclick="cargarAvion()">✅ CARGAR AVION</button>
-            <button class="btn-cancelar" onclick="cancelarPreparacion()">❌</button>
+            <button class="btn-c" onclick="cargarAvion()">✅ CARGAR AVION</button>
+            <button class="btn-x" onclick="cancelarPrep()">❌</button>
         </div>
     </div>
 
-    <!-- ==================== PALANCA DE POTENCIA ==================== -->
-    <div id="throttle-container">
-        <div id="throttle-icons" class="top">▲</div>
+    <!-- Palanca de potencia -->
+    <div id="throttle">
         <div id="throttle-track">
-            <div id="throttle-handle">
-                <div id="throttle-label">0%</div>
-            </div>
-        </div>
-        <div id="throttle-icons" class="bottom">▼</div>
-    </div>
-
-    <!-- ==================== JOYSTICK ==================== -->
-    <div id="joystick-container">
-        <div id="joystick-base">
-            <div id="joystick-thumb"></div>
+            <div id="throttle-handle"><div id="throttle-label">0%</div></div>
         </div>
     </div>
 
-    <!-- ==================== BOTONES DE CONTROL ==================== -->
-    <div id="control-buttons">
-        <button class="ctrl-btn engine" id="btn-engine">🔌 MOTOR</button>
-        <button class="ctrl-btn spray" id="btn-spray">💨 SPRAY</button>
-        <button class="ctrl-btn flaps" id="btn-flaps">🔄 FLAPS</button>
-        <button class="ctrl-btn brake" id="btn-brake">🛑 FRENO</button>
-        <button class="ctrl-btn rescue" id="btn-rescue">🚁 RESCATE</button>
+    <!-- Joystick -->
+    <div id="joystick"><div id="joystick-thumb"></div></div>
+
+    <!-- Botones de control -->
+    <div id="controls">
+        <button class="cbtn cbtn-engine" id="btn-engine">🔌 MOTOR</button>
+        <button class="cbtn cbtn-spray" id="btn-spray">💨 SPRAY</button>
+        <button class="cbtn cbtn-flaps" id="btn-flaps">🔄 FLAPS</button>
+        <button class="cbtn cbtn-brake" id="btn-brake">🛑 FRENO</button>
+        <button class="cbtn cbtn-rescue" id="btn-rescue">🚁 RESCATE</button>
     </div>
 
-    <!-- ==================== PANEL SUPERIOR ==================== -->
-    <div id="control-panel">
-        <button class="panel-btn shop" id="btn-shop">🏪 TIENDA</button>
-        <button class="panel-btn mission" id="btn-mission">📋 MISIÓN</button>
-        <button class="panel-btn save" id="btn-save">💾 GUARDAR</button>
-        <button class="panel-btn" id="btn-pause">⏸️ PAUSA</button>
-        <button class="panel-btn" id="btn-cam">📷 CAM</button>
+    <!-- Panel superior -->
+    <div id="top-panel">
+        <button class="tbtn" id="btn-shop">🏪 TIENDA</button>
+        <button class="tbtn" id="btn-mission">📋 MISIÓN</button>
+        <button class="tbtn" id="btn-save">💾 GUARDAR</button>
+        <button class="tbtn" id="btn-pause">⏸️</button>
+        <button class="tbtn" id="btn-cam">📷</button>
     </div>
 
-    <!-- ==================== MENÚ DE PAUSA ==================== -->
+    <!-- Menú pausa -->
     <div id="pause-menu">
-        <div class="menu-box">
+        <div class="box">
             <h2>⏸️ PAUSA</h2>
-            <button class="menu-btn primary" id="btn-resume">▶️ CONTINUAR</button>
-            <button class="menu-btn" id="btn-save-menu">💾 GUARDAR PARTIDA</button>
-            <button class="menu-btn" id="btn-load-menu">📂 CARGAR PARTIDA</button>
-            <button class="menu-btn" id="btn-restart">🔄 REINICIAR</button>
-            <button class="menu-btn danger" id="btn-quit">🚪 SALIR</button>
+            <button class="mbtn mbtn-primary" id="btn-resume">▶️ CONTINUAR</button>
+            <button class="mbtn" id="btn-save-menu">💾 GUARDAR</button>
+            <button class="mbtn" id="btn-load-menu">📂 CARGAR</button>
+            <button class="mbtn" id="btn-restart">🔄 REINICIAR</button>
+            <button class="mbtn mbtn-danger" id="btn-quit">🚪 SALIR</button>
         </div>
     </div>
 
-    <!-- ==================== SCRIPT ==================== -->
     <script>
-        // ================================================================
-        // 1. CONFIGURACIÓN Y ESTADO
-        // ================================================================
+        // ============================================================
+        // 1. CONFIGURACIÓN
+        // ============================================================
         const CONFIG = {
             gravedad: 9.8,
-            maxPotencia: 100,
-            stallSpeed: 40,
+            stallSpeed: 35,
             maxAltitud: 150,
-            anchoAspersionBase: 13.5,
         };
 
         const estado = {
             creditos: 500,
-            mejoras: { motor: 0, tanque: 0, presion: 0, boquilla: 0 },
-            misiones: [],
-            misionActual: null,
-            areaMision: 0,
-            horasVuelo: 0,
+            mejoras: { motor: 0, tanque: 0 },
             hectareas: 0,
-            motorEncendido: false,
         };
 
-        // Químicos disponibles
         const quimicos = {
             herbicida: { nombre: 'Herbicida', color: 0x22c55e, dosis: 2.5 },
             fungicida: { nombre: 'Fungicida', color: 0xf59e0b, dosis: 3.0 },
@@ -629,14 +545,14 @@
         let tankLevel = 0;
 
         // Variables de vuelo
-        let avionEstado = 'tierra'; // 'tierra', 'volando'
+        let avionEstado = 'tierra';
+        let motorEncendido = false;
         let throttle = 0;
-        let throttleTarget = 0;
         let speed = 0;
         let pitch = 0;
         let roll = 0;
         let yaw = 0;
-        let altitude = 1;
+        let altitude = 1.5;
         let isSpraying = false;
         let flaps = 0;
         let brake = false;
@@ -648,9 +564,13 @@
         let joyY = 0;
         let joystickDrag = false;
 
-        // ================================================================
+        // GPS
+        let waypoints = [];
+        let currentWaypoint = null;
+
+        // ============================================================
         // 2. THREE.JS
-        // ================================================================
+        // ============================================================
         const container = document.getElementById('canvas-container');
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x87ceeb);
@@ -664,18 +584,20 @@
         container.appendChild(renderer.domElement);
 
         // Iluminación
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-        scene.add(ambientLight);
-        const dirLight = new THREE.DirectionalLight(0xfff5e6, 0.8);
-        dirLight.position.set(200, 400, 200);
-        dirLight.castShadow = true;
-        scene.add(dirLight);
+        const ambient = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambient);
+        const sun = new THREE.DirectionalLight(0xfff5e6, 0.8);
+        sun.position.set(200, 400, 200);
+        sun.castShadow = true;
+        scene.add(sun);
 
-        // ================================================================
+        // ============================================================
         // 3. TERRENO
-        // ================================================================
-        const groundMat = new THREE.MeshLambertMaterial({ color: 0x4a7c20 });
-        const ground = new THREE.Mesh(new THREE.PlaneGeometry(3000, 3000), groundMat);
+        // ============================================================
+        const ground = new THREE.Mesh(
+            new THREE.PlaneGeometry(3000, 3000),
+            new THREE.MeshLambertMaterial({ color: 0x4a7c20 })
+        );
         ground.rotation.x = -Math.PI / 2;
         ground.receiveShadow = true;
         scene.add(ground);
@@ -692,566 +614,573 @@
 
         // Marcas de pista
         for (let i = -180; i <= 180; i += 20) {
-            const mark = new THREE.Mesh(
+            const m = new THREE.Mesh(
                 new THREE.PlaneGeometry(2, 8),
                 new THREE.MeshLambertMaterial({ color: 0xffffff })
             );
-            mark.rotation.x = -Math.PI / 2;
-            mark.position.set(0, 0.2, i - 100);
-            scene.add(mark);
+            m.rotation.x = -Math.PI / 2;
+            m.position.set(0, 0.15, i - 100);
+            scene.add(m);
         }
 
-        // Parcelas
-        const cropColors = [0x2e7d32, 0x388e3c, 0x43a047, 0x4caf50, 0x558b2f, 0x689f38, 0x7cb342, 0x8bc34a];
-        for (let x = -800; x <= 800; x += 350) {
-            for (let z = -800; z <= 800; z += 350) {
-                if (Math.abs(x) < 200 && Math.abs(z) < 300) continue;
-                const campo = new THREE.Mesh(
+        // Campos de cultivo con marcadores para misiones
+        const campos = [];
+        const colores = [0x2e7d32, 0x388e3c, 0x43a047, 0x4caf50, 0x558b2f, 0x689f38];
+        for (let x = -700; x <= 700; x += 350) {
+            for (let z = -700; z <= 700; z += 350) {
+                if (Math.abs(x) < 180 && Math.abs(z) < 250) continue;
+                const c = new THREE.Mesh(
                     new THREE.PlaneGeometry(300, 300),
-                    new THREE.MeshLambertMaterial({ color: cropColors[Math.floor(Math.random() * cropColors.length)] })
+                    new THREE.MeshLambertMaterial({ color: colores[Math.floor(Math.random() * colores.length)] })
                 );
-                campo.rotation.x = -Math.PI / 2;
-                campo.position.set(x, 0.15, z);
-                campo.receiveShadow = true;
-                scene.add(campo);
+                c.rotation.x = -Math.PI / 2;
+                c.position.set(x, 0.15, z);
+                c.receiveShadow = true;
+                scene.add(c);
+                campos.push({ x, z, fumigado: false, mesh: c });
             }
         }
 
-        // ================================================================
+        // Crear algunos waypoints (campos de misión)
+        const waypointPositions = [
+            { x: -350, z: -350 },
+            { x: 350, z: -350 },
+            { x: -350, z: 350 },
+            { x: 350, z: 350 },
+            { x: 0, z: -500 },
+        ];
+        waypointPositions.forEach((wp, i) => {
+            // Marcador visual
+            const marker = new THREE.Mesh(
+                new THREE.CylinderGeometry(5, 5, 2, 8),
+                new THREE.MeshLambertMaterial({ color: 0xfbbf24, transparent: true, opacity: 0.6 })
+            );
+            marker.position.set(wp.x, 1, wp.z);
+            marker.rotation.x = 0;
+            scene.add(marker);
+            
+            // Anillo
+            const ring = new THREE.Mesh(
+                new THREE.RingGeometry(6, 8, 16),
+                new THREE.MeshLambertMaterial({ color: 0xfbbf24, transparent: true, opacity: 0.3, side: THREE.DoubleSide })
+            );
+            ring.rotation.x = -Math.PI / 2;
+            ring.position.set(wp.x, 0.2, wp.z);
+            scene.add(ring);
+            
+            waypoints.push({ x: wp.x, z: wp.z, id: i, completado: false });
+        });
+
+        // ============================================================
         // 4. OBSTÁCULOS
-        // ================================================================
+        // ============================================================
         const obstacles = [];
-        const poleMat = new THREE.MeshLambertMaterial({ color: 0x64748b });
-        const wireMat = new THREE.MeshLambertMaterial({ color: 0x1e293b });
-        const treeTrunkMat = new THREE.MeshLambertMaterial({ color: 0x5c3d11 });
-        const treeLeavesMat = new THREE.MeshLambertMaterial({ color: 0x1b4332 });
-
-        function createPowerLines(startZ, endZ, posX) {
-            let prev = null;
-            for (let z = startZ; z <= endZ; z += 120) {
-                const group = new THREE.Group();
-                const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.4, 18), poleMat);
-                pole.position.y = 9;
-                pole.castShadow = true;
-                group.add(pole);
-                const cross = new THREE.Mesh(new THREE.BoxGeometry(6, 0.3, 0.3), poleMat);
-                cross.position.y = 17;
-                cross.castShadow = true;
-                group.add(cross);
-                group.position.set(posX, 0, z);
-                scene.add(group);
-                obstacles.push({ x: posX, y: 9, z, radius: 3, height: 18 });
-                if (prev) {
-                    const wire = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 120), wireMat);
-                    wire.position.set(posX, 17, z - 60);
-                    wire.rotation.x = Math.PI / 2;
-                    scene.add(wire);
-                }
-                prev = { x: posX, y: 17, z };
-            }
-        }
-        createPowerLines(-600, 600, 160);
-        createPowerLines(-600, 600, -160);
-
-        for (let i = 0; i < 80; i++) {
-            const tx = (Math.random() - 0.5) * 1600;
-            const tz = (Math.random() - 0.5) * 1600;
-            if (Math.abs(tx) < 180 && Math.abs(tz) < 300) continue;
+        // Árboles
+        for (let i = 0; i < 60; i++) {
+            const tx = (Math.random() - 0.5) * 1400;
+            const tz = (Math.random() - 0.5) * 1400;
+            if (Math.abs(tx) < 200 && Math.abs(tz) < 300) continue;
+            if (Math.abs(tx) < 100 && Math.abs(tz + 100) < 200) continue;
+            
             const tree = new THREE.Group();
-            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1.2, 6), treeTrunkMat);
-            trunk.position.y = 3;
+            const trunk = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.6, 1.0, 5),
+                new THREE.MeshLambertMaterial({ color: 0x5c3d11 })
+            );
+            trunk.position.y = 2.5;
             trunk.castShadow = true;
             tree.add(trunk);
-            const leaves = new THREE.Mesh(new THREE.ConeGeometry(5, 14, 6), treeLeavesMat);
-            leaves.position.y = 10;
+            const leaves = new THREE.Mesh(
+                new THREE.ConeGeometry(4, 10, 6),
+                new THREE.MeshLambertMaterial({ color: 0x1b4332 })
+            );
+            leaves.position.y = 8;
             leaves.castShadow = true;
             tree.add(leaves);
             tree.position.set(tx, 0, tz);
             scene.add(tree);
-            obstacles.push({ x: tx, y: 7, z: tz, radius: 4, height: 14 });
+            obstacles.push({ x: tx, z: tz, radius: 4, height: 10 });
         }
 
-        // ================================================================
+        // ============================================================
         // 5. AVIÓN
-        // ================================================================
+        // ============================================================
         const airplane = new THREE.Group();
-        const bodyMat = new THREE.MeshLambertMaterial({ color: 0xfacc15 });
-        const accentMat = new THREE.MeshLambertMaterial({ color: 0x1d4ed8 });
-        const darkMat = new THREE.MeshLambertMaterial({ color: 0x1e293b });
-        const glassMat = new THREE.MeshLambertMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.7 });
+        const yellow = new THREE.MeshLambertMaterial({ color: 0xfacc15 });
+        const blue = new THREE.MeshLambertMaterial({ color: 0x1d4ed8 });
+        const dark = new THREE.MeshLambertMaterial({ color: 0x1e293b });
+        const glass = new THREE.MeshLambertMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.6 });
 
         // Fuselaje
-        const body = new THREE.Mesh(new THREE.BoxGeometry(1.8, 2.0, 7.5), bodyMat);
-        body.position.y = 1.3;
-        body.castShadow = true;
-        airplane.add(body);
+        const fus = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.8, 7), yellow);
+        fus.position.y = 1.2;
+        fus.castShadow = true;
+        airplane.add(fus);
 
         // Morro
-        const nose = new THREE.Mesh(new THREE.ConeGeometry(1.0, 2.5, 8), accentMat);
-        nose.position.set(0, 1.2, -4.8);
-        nose.rotation.x = Math.PI / 2;
-        nose.castShadow = true;
-        airplane.add(nose);
+        const morro = new THREE.Mesh(new THREE.ConeGeometry(0.9, 2.2, 8), blue);
+        morro.position.set(0, 1.1, -4.5);
+        morro.rotation.x = Math.PI / 2;
+        morro.castShadow = true;
+        airplane.add(morro);
 
         // Cabina
-        const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.3, 2.2), glassMat);
-        cabin.position.set(0, 2.5, 0.3);
-        cabin.castShadow = true;
-        airplane.add(cabin);
+        const cab = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 2), glass);
+        cab.position.set(0, 2.4, 0.3);
+        cab.castShadow = true;
+        airplane.add(cab);
 
         // Ala
-        const wing = new THREE.Mesh(new THREE.BoxGeometry(15, 0.15, 2.5), bodyMat);
-        wing.position.set(0, 1.3, -0.8);
-        wing.castShadow = true;
-        airplane.add(wing);
+        const ala = new THREE.Mesh(new THREE.BoxGeometry(14, 0.12, 2.2), yellow);
+        ala.position.set(0, 1.2, -0.8);
+        ala.castShadow = true;
+        airplane.add(ala);
 
-        // Barra de aspersión
-        const sprayBar = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.08, 0.08, 14.5),
+        // Barra de spray
+        const barra = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.06, 0.06, 13),
             new THREE.MeshLambertMaterial({ color: 0x475569 })
         );
-        sprayBar.rotation.z = Math.PI / 2;
-        sprayBar.position.set(0, 0.6, -0.1);
-        airplane.add(sprayBar);
+        barra.rotation.z = Math.PI / 2;
+        barra.position.set(0, 0.5, -0.1);
+        airplane.add(barra);
 
         // Hélice
-        const propGroup = new THREE.Group();
-        const propHub = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.5), darkMat);
-        propHub.rotation.x = Math.PI / 2;
-        propGroup.add(propHub);
+        const helice = new THREE.Group();
+        const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.4), dark);
+        hub.rotation.x = Math.PI / 2;
+        helice.add(hub);
         for (let i = 0; i < 2; i++) {
             const blade = new THREE.Mesh(
-                new THREE.BoxGeometry(0.2, 2.8, 0.05),
+                new THREE.BoxGeometry(0.15, 2.4, 0.04),
                 new THREE.MeshLambertMaterial({ color: 0x1e293b })
             );
-            blade.position.y = (i === 0) ? 1.4 : -1.4;
-            propGroup.add(blade);
+            blade.position.y = (i === 0) ? 1.2 : -1.2;
+            helice.add(blade);
         }
-        propGroup.position.set(0, 1.2, -5.5);
-        airplane.add(propGroup);
+        helice.position.set(0, 1.1, -5.2);
+        airplane.add(helice);
 
         // Tren de aterrizaje
-        const gearMat = new THREE.MeshLambertMaterial({ color: 0x1e293b });
         for (let side = -1; side <= 1; side += 2) {
-            const gearLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 0.6), gearMat);
-            gearLeg.position.set(side * 1.2, 0.1, 0.5);
-            airplane.add(gearLeg);
-            const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.08), darkMat);
+            const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 0.5), dark);
+            leg.position.set(side * 1.0, 0.1, 0.5);
+            airplane.add(leg);
+            const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.06), dark);
             wheel.rotation.z = Math.PI / 2;
-            wheel.position.set(side * 1.2, 0.05, 0.5);
+            wheel.position.set(side * 1.0, 0.05, 0.5);
             airplane.add(wheel);
         }
 
-        airplane.position.set(0, 1, 80);
+        airplane.position.set(0, 1.5, 80);
         scene.add(airplane);
 
-        // ================================================================
+        // ============================================================
         // 6. ASPERSIÓN
-        // ================================================================
-        const sprayedTracks = [];
+        // ============================================================
+        const tracks = [];
         const trackMat = new THREE.MeshLambertMaterial({ color: 0x1b4332, transparent: true, opacity: 0.5 });
 
         function paintSwath() {
-            if (altitude > 10) return;
-            const ancho = CONFIG.anchoAspersionBase + (estado.mejoras.boquilla * 1.5);
-            const track = new THREE.Mesh(new THREE.PlaneGeometry(ancho, 3), trackMat);
-            track.rotation.x = -Math.PI / 2;
-            track.rotation.z = airplane.rotation.y;
-            track.position.set(airplane.position.x, 0.2, airplane.position.z);
-            scene.add(track);
-            sprayedTracks.push(track);
+            if (altitude > 8) return;
+            const ancho = 13.5;
+            const t = new THREE.Mesh(new THREE.PlaneGeometry(ancho, 3), trackMat);
+            t.rotation.x = -Math.PI / 2;
+            t.rotation.z = airplane.rotation.y;
+            t.position.set(airplane.position.x, 0.2, airplane.position.z);
+            scene.add(t);
+            tracks.push(t);
             areaCoveredSqm += ancho * 3;
-            estado.areaMision += ancho * 3;
             estado.hectareas += (ancho * 3) / 10000;
         }
 
         // Partículas
-        const particleCount = 300;
-        const particleGeo = new THREE.BufferGeometry();
-        const particlePos = new Float32Array(particleCount * 3);
-        particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePos, 3));
-        const particleMat = new THREE.PointsMaterial({
-            size: 2.0,
+        const pCount = 200;
+        const pGeo = new THREE.BufferGeometry();
+        const pPos = new Float32Array(pCount * 3);
+        pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+        const pMat = new THREE.PointsMaterial({
+            size: 1.8,
             transparent: true,
-            opacity: 0.6,
-            color: 0x00ffff,
+            opacity: 0.5,
+            color: 0x00ffaa,
             blending: THREE.NormalBlending,
             depthWrite: false
         });
-        const sprayParticles = new THREE.Points(particleGeo, particleMat);
-        scene.add(sprayParticles);
-        let particleIdx = 0;
+        const particles = new THREE.Points(pGeo, pMat);
+        scene.add(particles);
+        let pIdx = 0;
 
         function emitSpray() {
             if (!isSpraying || tankLevel <= 0 || avionEstado !== 'volando') return;
-            const pos = sprayParticles.geometry.attributes.position.array;
-            const ancho = CONFIG.anchoAspersionBase + (estado.mejoras.boquilla * 1.5);
-            for (let i = -ancho / 2; i <= ancho / 2; i += 1.5) {
-                const pt = new THREE.Vector3(i, 0.8, -0.1).applyMatrix4(airplane.matrixWorld);
-                pos[particleIdx * 3] = pt.x + (Math.random() - 0.5) * 0.5;
-                pos[particleIdx * 3 + 1] = pt.y + (Math.random() - 0.5) * 0.5;
-                pos[particleIdx * 3 + 2] = pt.z + (Math.random() - 0.5) * 0.5;
-                particleIdx = (particleIdx + 1) % particleCount;
+            const pos = particles.geometry.attributes.position.array;
+            for (let i = -6; i <= 6; i += 1.5) {
+                const pt = new THREE.Vector3(i, 0.6, -0.1).applyMatrix4(airplane.matrixWorld);
+                pos[pIdx * 3] = pt.x + (Math.random() - 0.5) * 0.4;
+                pos[pIdx * 3 + 1] = pt.y + (Math.random() - 0.5) * 0.4;
+                pos[pIdx * 3 + 2] = pt.z + (Math.random() - 0.5) * 0.4;
+                pIdx = (pIdx + 1) % pCount;
             }
-            sprayParticles.geometry.attributes.position.needsUpdate = true;
+            particles.geometry.attributes.position.needsUpdate = true;
             paintSwath();
         }
 
-        // ================================================================
+        // ============================================================
         // 7. FUNCIONES DE PREPARACIÓN
-        // ================================================================
-        function seleccionarQuimico(tipo) {
-            if (avionEstado === 'volando') {
-                mostrarAlerta('⚠️ No puedes cambiar en vuelo', 'warn');
-                return;
-            }
+        // ============================================================
+        function selQuimico(tipo) {
+            if (avionEstado === 'volando') { alerta('No en vuelo', 'warn'); return; }
             quimicoSeleccionado = quimicos[tipo];
-            document.getElementById('quimico-nombre').textContent = quimicoSeleccionado.nombre;
-            document.getElementById('quimico-dosis').textContent = quimicoSeleccionado.dosis + ' L/ha';
-            // Resaltar botón
-            document.querySelectorAll('.quimico-btn').forEach(b => b.classList.remove('selected'));
-            document.querySelector(`.quimico-btn.${tipo}`).classList.add('selected');
-            mostrarAlerta(`✅ Seleccionado: ${quimicoSeleccionado.nombre}`, 'info');
+            document.getElementById('q-nombre').textContent = quimicoSeleccionado.nombre;
+            document.getElementById('q-dosis').textContent = quimicoSeleccionado.dosis + ' L/ha';
+            document.querySelectorAll('.quimico-grid button').forEach(b => b.classList.remove('q-selected'));
+            document.querySelector(`.q-${tipo}`).classList.add('q-selected');
+            alerta(`✅ ${quimicoSeleccionado.nombre} seleccionado`, 'success');
         }
 
-        function agregarQuimico() {
-            if (!quimicoSeleccionado || avionEstado === 'volando') {
-                mostrarAlerta('⚠️ Selecciona un químico', 'warn');
-                return;
-            }
+        function addQuimico() {
+            if (!quimicoSeleccionado || avionEstado === 'volando') { alerta('⚠️ Selecciona químico', 'warn'); return; }
             if (nivelQuimico < 100) {
                 nivelQuimico = Math.min(100, nivelQuimico + 10);
                 actualizarBarras();
             }
         }
 
-        function agregarAgua() {
-            if (nivelQuimico === 0 || avionEstado === 'volando') {
-                mostrarAlerta('⚠️ Agrega químico primero', 'warn');
-                return;
-            }
+        function addAgua() {
+            if (nivelQuimico === 0 || avionEstado === 'volando') { alerta('⚠️ Agrega químico primero', 'warn'); return; }
             if (nivelAgua < 100) {
                 nivelAgua = Math.min(100, nivelAgua + 10);
                 actualizarBarras();
             }
         }
 
-        function iniciarMezcla() {
-            if (nivelQuimico === 0 || nivelAgua === 0) {
-                mostrarAlerta('⚠️ Necesitas químico y agua', 'warn');
-                return;
-            }
-            if (avionEstado === 'volando') {
-                mostrarAlerta('⚠️ No puedes mezclar en vuelo', 'warn');
-                return;
-            }
+        function mezclar() {
+            if (nivelQuimico === 0 || nivelAgua === 0) { alerta('⚠️ Necesitas químico y agua', 'warn'); return; }
+            if (avionEstado === 'volando') { alerta('⚠️ No en vuelo', 'warn'); return; }
             
-            let progreso = 0;
-            const intervalo = setInterval(() => {
-                progreso += 2;
-                calidadMezcla = Math.min(100, progreso);
-                document.getElementById('barra-mezcla').style.width = calidadMezcla + '%';
-                document.getElementById('barra-mezcla-label').textContent = calidadMezcla + '%';
-                document.getElementById('mezcla-porcentaje').textContent = calidadMezcla + '%';
-                
-                if (calidadMezcla >= 100) {
-                    clearInterval(intervalo);
-                    mostrarAlerta('✅ MEZCLA COMPLETA', 'success');
-                }
-            }, 100);
+            let prog = 0;
+            const int = setInterval(() => {
+                prog += 3;
+                calidadMezcla = Math.min(100, prog);
+                document.getElementById('m-bar').style.width = calidadMezcla + '%';
+                document.getElementById('m-label').textContent = calidadMezcla + '%';
+                document.getElementById('m-porc').textContent = calidadMezcla + '%';
+                if (calidadMezcla >= 100) { clearInterval(int); alerta('✅ Mezcla completa', 'success'); }
+            }, 80);
         }
 
         function actualizarBarras() {
-            document.getElementById('barra-quimico').style.width = nivelQuimico + '%';
-            document.getElementById('barra-quimico-label').textContent = nivelQuimico + '%';
-            document.getElementById('nivel-quimico-text').textContent = nivelQuimico + '%';
-            
-            document.getElementById('barra-agua').style.width = nivelAgua + '%';
-            document.getElementById('barra-agua-label').textContent = nivelAgua + '%';
-            document.getElementById('nivel-agua-text').textContent = nivelAgua + '%';
+            document.getElementById('q-bar').style.width = nivelQuimico + '%';
+            document.getElementById('q-label').textContent = nivelQuimico + '%';
+            document.getElementById('q-porc').textContent = nivelQuimico + '%';
+            document.getElementById('a-bar').style.width = nivelAgua + '%';
+            document.getElementById('a-label').textContent = nivelAgua + '%';
+            document.getElementById('a-porc').textContent = nivelAgua + '%';
         }
 
         function cargarAvion() {
             if (calidadMezcla < 100 || nivelQuimico === 0 || nivelAgua === 0) {
-                mostrarAlerta('⚠️ Mezcla incompleta', 'warn');
+                alerta('⚠️ Mezcla incompleta', 'warn');
                 return;
             }
-            
-            const capacidadBase = 100 + (estado.mejoras.tanque * 20);
-            tankLevel = capacidadBase;
-            document.getElementById('bar-tank').style.width = '100%';
-            
-            document.getElementById('panel-preparacion').style.display = 'none';
-            mostrarAlerta('✅ AVION CARGADO - Enciende el motor', 'success');
-            document.getElementById('val-status').textContent = 'LISTO';
+            const cap = 100 + (estado.mejoras.tanque * 20);
+            tankLevel = cap;
+            document.getElementById('v-tank').style.width = '100%';
+            document.getElementById('prep-panel').style.display = 'none';
+            alerta('✅ Avión cargado - Enciende motor', 'success');
         }
 
-        function cancelarPreparacion() {
-            document.getElementById('panel-preparacion').style.display = 'none';
-            nivelQuimico = 0;
-            nivelAgua = 0;
-            calidadMezcla = 0;
+        function cancelarPrep() {
+            document.getElementById('prep-panel').style.display = 'none';
+            nivelQuimico = 0; nivelAgua = 0; calidadMezcla = 0;
             quimicoSeleccionado = null;
             actualizarBarras();
-            document.getElementById('barra-mezcla').style.width = '0%';
-            document.getElementById('barra-mezcla-label').textContent = '0%';
-            document.getElementById('mezcla-porcentaje').textContent = '0%';
-            document.getElementById('quimico-nombre').textContent = 'Ninguno';
-            document.getElementById('quimico-dosis').textContent = '0 L/ha';
-            document.querySelectorAll('.quimico-btn').forEach(b => b.classList.remove('selected'));
+            document.getElementById('m-bar').style.width = '0%';
+            document.getElementById('m-label').textContent = '0%';
+            document.getElementById('m-porc').textContent = '0%';
+            document.getElementById('q-nombre').textContent = 'Ninguno';
+            document.getElementById('q-dosis').textContent = '0 L/ha';
+            document.querySelectorAll('.quimico-grid button').forEach(b => b.classList.remove('q-selected'));
         }
 
-        // ================================================================
-        // 8. FUNCIONES DE CONTROL DE VUELO
-        // ================================================================
+        // ============================================================
+        // 8. FUNCIONES DE VUELO
+        // ============================================================
         function toggleEngine() {
             if (avionEstado === 'tierra' && tankLevel > 0 && calidadMezcla >= 100) {
-                estado.motorEncendido = !estado.motorEncendido;
-                if (estado.motorEncendido) {
+                motorEncendido = !motorEncendido;
+                if (motorEncendido) {
                     avionEstado = 'volando';
                     document.getElementById('btn-engine').classList.add('active');
                     document.getElementById('btn-engine').textContent = '🔌 ON';
-                    document.getElementById('val-status').textContent = 'VOLANDO';
-                    document.getElementById('panel-preparacion').style.display = 'none';
-                    mostrarAlerta('🛫 MOTOR ENCENDIDO - ¡A VOLAR!', 'success');
-                    throttleTarget = 20;
+                    document.getElementById('prep-panel').style.display = 'none';
+                    alerta('🛫 Motor encendido - ¡A volar!', 'success');
+                    throttle = 15;
                 } else {
                     document.getElementById('btn-engine').classList.remove('active');
                     document.getElementById('btn-engine').textContent = '🔌 MOTOR';
-                    document.getElementById('val-status').textContent = 'APAGADO';
-                    mostrarAlerta('⏹️ MOTOR APAGADO', 'info');
+                    alerta('⏹️ Motor apagado', 'info');
                 }
             } else if (avionEstado === 'volando') {
-                estado.motorEncendido = false;
+                motorEncendido = false;
                 avionEstado = 'tierra';
                 document.getElementById('btn-engine').classList.remove('active');
                 document.getElementById('btn-engine').textContent = '🔌 MOTOR';
-                document.getElementById('val-status').textContent = 'EN TIERRA';
-                throttleTarget = 0;
                 throttle = 0;
-                mostrarAlerta('⏹️ MOTOR APAGADO', 'info');
+                alerta('⏹️ Motor apagado', 'info');
             } else {
-                mostrarAlerta('⚠️ Carga el avión primero', 'warn');
+                alerta('⚠️ Carga el avión primero', 'warn');
             }
         }
 
         function toggleSpray() {
-            if (avionEstado !== 'volando') {
-                mostrarAlerta('⚠️ Debes estar en vuelo', 'warn');
-                return;
-            }
-            if (tankLevel <= 0) {
-                mostrarAlerta('⚠️ Tanque vacío', 'warn');
-                return;
-            }
+            if (avionEstado !== 'volando') { alerta('⚠️ En vuelo primero', 'warn'); return; }
+            if (tankLevel <= 0) { alerta('⚠️ Tanque vacío', 'warn'); return; }
             isSpraying = !isSpraying;
             document.getElementById('btn-spray').classList.toggle('active');
-            mostrarAlerta(isSpraying ? '💨 ASPERSIÓN ACTIVA' : '⏸️ ASPERSIÓN PAUSADA', isSpraying ? 'spray' : 'info');
+            alerta(isSpraying ? '💨 Aspersión activa' : '⏸️ Pausada', isSpraying ? 'success' : 'info');
         }
 
         function toggleFlaps() {
             flaps = (flaps + 1) % 4;
-            mostrarAlerta(`🔄 FLAPS ${flaps * 10}°`, 'info');
+            alerta(`🔄 Flaps ${flaps * 10}°`, 'info');
         }
 
         function toggleBrake() {
             brake = !brake;
             document.getElementById('btn-brake').classList.toggle('active');
-            mostrarAlerta(brake ? '🛑 FRENOS' : 'FRENOS OFF', brake ? 'warn' : 'info');
+            alerta(brake ? '🛑 Frenos' : 'Frenos OFF', brake ? 'warn' : 'info');
         }
 
         function rescuePlane() {
-            if (avionEstado === 'tierra') {
-                mostrarAlerta('⚠️ Ya estás en tierra', 'warn');
-                return;
-            }
-            const costo = 100 + Math.abs(airplane.position.x) / 10;
-            if (estado.creditos < costo) {
-                mostrarAlerta(`💰 Créditos insuficientes ($${costo})`, 'warn');
-                return;
-            }
-            estado.creditos -= costo;
-            mostrarAlerta(`🚁 RESCATANDO... -$${costo}`, 'info');
+            if (avionEstado === 'tierra') { alerta('⚠️ Ya estás en tierra', 'warn'); return; }
+            const costo = 50 + Math.abs(airplane.position.x) / 20;
+            if (estado.creditos < costo) { alerta(`💰 Necesitas $${Math.round(costo)}`, 'warn'); return; }
+            estado.creditos -= Math.round(costo);
+            alerta(`🚁 Rescatando... -$${Math.round(costo)}`, 'info');
             setTimeout(() => {
-                airplane.position.set(0, 1, 80);
-                altitude = 1;
+                airplane.position.set(0, 1.5, 80);
+                altitude = 1.5;
                 speed = 0;
                 throttle = 0;
-                throttleTarget = 0;
-                pitch = 0;
-                roll = 0;
-                yaw = 0;
+                pitch = 0; roll = 0; yaw = 0;
                 avionEstado = 'tierra';
-                estado.motorEncendido = false;
+                motorEncendido = false;
                 tankLevel = 0;
                 isSpraying = false;
                 document.getElementById('btn-spray').classList.remove('active');
                 document.getElementById('btn-engine').classList.remove('active');
                 document.getElementById('btn-engine').textContent = '🔌 MOTOR';
-                document.getElementById('bar-tank').style.width = '0%';
+                document.getElementById('v-tank').style.width = '0%';
                 document.getElementById('throttle-handle').style.bottom = '0%';
                 document.getElementById('throttle-label').textContent = '0%';
-                document.getElementById('val-status').textContent = 'EN TIERRA';
-                mostrarAlerta('🛬 AVION RESCATADO', 'success');
-                document.getElementById('panel-preparacion').style.display = 'block';
+                alerta('🛬 Avión rescatado en pista', 'success');
+                document.getElementById('prep-panel').style.display = 'block';
+                actualizarHUD();
             }, 2000);
         }
 
-        // ================================================================
-        // 9. FÍSICA
-        // ================================================================
+        // ============================================================
+        // 9. FÍSICA (REALISTA)
+        // ============================================================
         function updatePhysics(delta) {
-            if (avionEstado !== 'volando') return;
-
-            // Potencia
-            if (throttle < throttleTarget) {
-                throttle = Math.min(throttleTarget, throttle + 60 * delta);
-            } else if (throttle > throttleTarget) {
-                throttle = Math.max(throttleTarget, throttle - 60 * delta);
+            if (avionEstado !== 'volando') {
+                // Gravedad en tierra
+                if (altitude > 0.5) {
+                    altitude -= 2 * delta;
+                    altitude = Math.max(0.2, altitude);
+                    airplane.position.y = altitude;
+                }
+                return;
             }
 
-            // Velocidad
-            const motorBonus = 1 + (estado.mejoras.motor * 0.15);
-            const drag = 0.02 + (pitch * 0.01);
-            const thrust = (throttle / 100) * 130 * motorBonus;
-            speed += (thrust - speed * speed * drag - 0.3) * delta;
+            // --- POTENCIA ---
+            if (throttle < 100 && motorEncendido) {
+                throttle = Math.min(100, throttle + 30 * delta);
+            }
+            if (throttle > 0 && !motorEncendido) {
+                throttle = Math.max(0, throttle - 20 * delta);
+            }
+
+            // --- VELOCIDAD ---
+            const motorBonus = 1 + (estado.mejoras.motor * 0.12);
+            const thrust = (throttle / 100) * 120 * motorBonus;
+            const drag = 0.015 + (Math.abs(pitch) * 0.005);
+            speed += (thrust - speed * speed * drag - 0.5) * delta;
             speed = Math.max(0, speed);
 
-            // Controles (joystick)
-            const ctrlSens = Math.min(1, speed / 25);
-            pitch += (joyY * 1.2 - pitch * 0.3) * delta * 4 * ctrlSens;
-            pitch = Math.max(-0.6, Math.min(0.6, pitch));
+            // --- CONTROL (con suavidad) ---
+            const ctrl = Math.min(1, speed / 20);
 
-            roll += (joyX * 1.5 - roll * 0.3) * delta * 4 * ctrlSens;
-            roll = Math.max(-0.8, Math.min(0.8, roll));
+            // Cabeceo
+            const targetPitch = joyY * 0.6 * ctrl;
+            pitch += (targetPitch - pitch) * 2 * delta;
 
-            // Rotaciones
-            airplane.rotation.x = pitch * 0.6;
-            airplane.rotation.z = -roll * 0.7;
-            yaw += (-roll * 1.0) * delta * ctrlSens;
+            // Alabeo
+            const targetRoll = joyX * 0.8 * ctrl;
+            roll += (targetRoll - roll) * 2 * delta;
+
+            // --- ROTACIONES ---
+            airplane.rotation.x = pitch * 0.5;
+            airplane.rotation.z = -roll * 0.6;
+            yaw += (-roll * 0.8) * delta * ctrl;
             airplane.rotation.y = yaw;
 
-            // Movimiento
-            const speedFactor = speed / 3.6 * (brake ? 0.3 : 1);
-            airplane.translateOnAxis(new THREE.Vector3(0, 0, -1), speedFactor * delta);
+            // --- MOVIMIENTO ---
+            const spd = speed / 3.6 * (brake ? 0.4 : 1);
+            airplane.translateOnAxis(new THREE.Vector3(0, 0, -1), spd * delta);
 
-            // Gravedad y sustentación
-            const lift = speed * 0.03 * (1 + pitch * 0.5) * (1 - flaps * 0.03);
-            const weight = 0.5 + (tankLevel / 100) * 0.3;
-            const gravity = 2.5 * weight * delta;
-            altitude += (lift - gravity) * delta;
+            // --- GRAVEDAD Y SUSTENTACIÓN (FÍSICA REAL) ---
+            const lift = speed * 0.028 * (1 + pitch * 0.4) * (1 - flaps * 0.02);
+            const weight = 0.4 + (tankLevel / 100) * 0.25;
+            const gravity = CONFIG.gravedad * weight * delta;
+
+            // Si el motor está apagado y baja velocidad, cae
+            if (!motorEncendido && speed < 10) {
+                altitude -= gravity * 1.5;
+            } else {
+                altitude += (lift - gravity) * delta * 0.8;
+            }
+
+            // Limitar altitud
             altitude = Math.max(0.2, Math.min(CONFIG.maxAltitud, altitude));
             airplane.position.y = altitude;
 
-            // Stall
-            if (speed < CONFIG.stallSpeed && altitude > 2) {
+            // --- STALL (pérdida de sustentación) ---
+            if (speed < CONFIG.stallSpeed && altitude > 3 && pitch < -0.1) {
                 airplane.rotation.z += (Math.random() - 0.5) * 0.01;
                 if (Math.random() < 0.005) {
-                    mostrarAlerta('🚨 ¡PÉRDIDA!', 'warn');
+                    alerta('🚨 ¡Pérdida! (Stall)', 'warn');
                 }
             }
 
-            // Aspersión
+            // --- ASPERSIÓN ---
             if (isSpraying && tankLevel > 0) {
-                const consumo = 3.5 + (estado.mejoras.presion * 0.3);
-                tankLevel = Math.max(0, tankLevel - consumo * delta);
+                tankLevel = Math.max(0, tankLevel - 4 * delta);
                 emitSpray();
-                document.getElementById('bar-tank').style.width = (tankLevel / 100 * 100) + '%';
+                document.getElementById('v-tank').style.width = (tankLevel / 100 * 100) + '%';
                 if (tankLevel <= 0) {
                     isSpraying = false;
                     document.getElementById('btn-spray').classList.remove('active');
-                    mostrarAlerta('⛽ TANQUE VACÍO', 'warn');
+                    alerta('⛽ Tanque vacío', 'warn');
                 }
             }
 
-            // Colisiones
+            // --- COLISIONES ---
             const pos = airplane.position;
             for (let obs of obstacles) {
                 const dist = Math.sqrt(Math.pow(pos.x - obs.x, 2) + Math.pow(pos.z - obs.z, 2));
                 if (dist < obs.radius + 2 && altitude < obs.height) {
-                    mostrarAlerta('🚨 ¡OBSTÁCULO!', 'warn');
+                    alerta('🚨 ¡Obstáculo!', 'warn');
                     speed *= 0.5;
                     throttle = Math.max(0, throttle - 20);
                     break;
                 }
             }
 
-            // Aterrizaje
-            if (altitude < 0.5 && Math.abs(pos.z) < 50 && speed < 30) {
-                aterrizar();
+            // --- ATERRIZAJE ---
+            if (altitude < 0.5 && Math.abs(pos.z) < 50 && speed < 25) {
+                avionEstado = 'tierra';
+                motorEncendido = false;
+                isSpraying = false;
+                document.getElementById('btn-spray').classList.remove('active');
+                document.getElementById('btn-engine').classList.remove('active');
+                document.getElementById('btn-engine').textContent = '🔌 MOTOR';
+                throttle = 0;
+                alerta('🛬 ¡Aterrizaje exitoso!', 'success');
+                setTimeout(() => {
+                    document.getElementById('prep-panel').style.display = 'block';
+                    alerta('🔄 Recarga para continuar', 'info');
+                }, 1500);
             }
 
-            // HUD
-            document.getElementById('val-alt').textContent = Math.round(altitude) + 'm';
-            document.getElementById('val-spd').textContent = Math.round(speed) + ' km/h';
-            document.getElementById('val-pwr').textContent = Math.round(throttle) + '%';
-            document.getElementById('val-cov').textContent = (areaCoveredSqm / 10000).toFixed(2) + ' ha';
-            document.getElementById('val-credits').textContent = '$' + estado.creditos;
-        }
-
-        function aterrizar() {
-            avionEstado = 'tierra';
-            estado.motorEncendido = false;
-            isSpraying = false;
-            document.getElementById('btn-spray').classList.remove('active');
-            document.getElementById('btn-engine').classList.remove('active');
-            document.getElementById('btn-engine').textContent = '🔌 MOTOR';
-            document.getElementById('val-status').textContent = 'EN TIERRA';
-            throttle = 0;
-            throttleTarget = 0;
-            document.getElementById('throttle-handle').style.bottom = '0%';
-            document.getElementById('throttle-label').textContent = '0%';
-            mostrarAlerta('🛬 ATERRIZAJE EXITOSO', 'success');
-            setTimeout(() => {
-                document.getElementById('panel-preparacion').style.display = 'block';
-                mostrarAlerta('🔄 RECARGA PARA CONTINUAR', 'info');
-            }, 1500);
-        }
-
-        // ================================================================
-        // 10. GUARDADO
-        // ================================================================
-        function guardarPartida() {
-            const data = {
-                creditos: estado.creditos,
-                mejoras: estado.mejoras,
-                hectareas: estado.hectareas,
-                areaCoveredSqm: areaCoveredSqm,
-                timestamp: Date.now()
-            };
-            localStorage.setItem('agroflight_save', JSON.stringify(data));
-            mostrarAlerta('💾 PARTIDA GUARDADA', 'success');
-        }
-
-        function cargarPartida() {
-            const raw = localStorage.getItem('agroflight_save');
-            if (!raw) {
-                mostrarAlerta('📂 No hay partida guardada', 'info');
-                return;
+            // --- LIMPIAR CAMPO DE AVANCE ---
+            if (altitude > 150) {
+                altitude = 150;
+                alerta('⚠️ Altitud máxima', 'warn');
             }
-            try {
-                const data = JSON.parse(raw);
-                estado.creditos = data.creditos || 500;
-                estado.mejoras = data.mejoras || { motor: 0, tanque: 0, presion: 0, boquilla: 0 };
-                estado.hectareas = data.hectareas || 0;
-                areaCoveredSqm = data.areaCoveredSqm || 0;
-                mostrarAlerta('📂 PARTIDA CARGADA', 'success');
-                document.getElementById('val-credits').textContent = '$' + estado.creditos;
-                document.getElementById('val-cov').textContent = (areaCoveredSqm / 10000).toFixed(2) + ' ha';
-            } catch (e) {
-                mostrarAlerta('⚠️ Error al cargar', 'warn');
+
+            // --- GPS (dirección al waypoint más cercano) ---
+            updateGPS();
+
+            // --- HUD ---
+            document.getElementById('v-alt').textContent = Math.round(altitude) + 'm';
+            document.getElementById('v-spd').textContent = Math.round(speed) + ' km/h';
+            document.getElementById('v-pwr').textContent = Math.round(throttle) + '%';
+            document.getElementById('v-cov').textContent = (areaCoveredSqm / 10000).toFixed(2) + ' ha';
+        }
+
+        // ============================================================
+        // 10. GPS
+        // ============================================================
+        function updateGPS() {
+            const pos = airplane.position;
+            let closest = null;
+            let closestDist = Infinity;
+
+            for (let wp of waypoints) {
+                if (wp.completado) continue;
+                const dist = Math.sqrt(Math.pow(pos.x - wp.x, 2) + Math.pow(pos.z - wp.z, 2));
+                if (dist < closestDist) {
+                    closestDist = dist;
+                    closest = wp;
+                }
+            }
+
+            if (closest && closestDist < 500) {
+                currentWaypoint = closest;
+                document.getElementById('gps-arrow').style.display = 'block';
+                document.getElementById('gps-distance').style.display = 'block';
+                document.getElementById('gps-distance').textContent = Math.round(closestDist) + ' m';
+
+                // Calcular ángulo
+                const dx = closest.x - pos.x;
+                const dz = closest.z - pos.z;
+                const angle = Math.atan2(dx, dz) * (180 / Math.PI);
+                const planeAngle = yaw * (180 / Math.PI);
+                let diff = angle - planeAngle;
+                while (diff > 180) diff -= 360;
+                while (diff < -180) diff += 360;
+
+                const arrow = document.getElementById('gps-arrow');
+                if (Math.abs(diff) < 20) {
+                    arrow.textContent = '⬆️';
+                    arrow.style.color = '#4ade80';
+                } else if (diff > 0) {
+                    arrow.textContent = '↗️';
+                    arrow.style.color = '#facc15';
+                } else {
+                    arrow.textContent = '↖️';
+                    arrow.style.color = '#facc15';
+                }
+
+                if (closestDist < 30) {
+                    closest.completado = true;
+                    alerta('📍 ¡Waypoint alcanzado! +$50', 'success');
+                    estado.creditos += 50;
+                    actualizarHUD();
+                    document.getElementById('gps-arrow').style.display = 'none';
+                    document.getElementById('gps-distance').style.display = 'none';
+                }
+            } else {
+                document.getElementById('gps-arrow').style.display = 'none';
+                document.getElementById('gps-distance').style.display = 'none';
             }
         }
 
-        // ================================================================
-        // 11. UI
-        // ================================================================
-        function mostrarAlerta(msg, tipo = 'info') {
-            const banner = document.getElementById('alert-banner');
-            banner.textContent = msg;
-            banner.className = tipo;
-            clearTimeout(banner._timeout);
-            banner._timeout = setTimeout(() => { banner.className = ''; }, 3000);
+        // ============================================================
+        // 11. HUD Y UI
+        // ============================================================
+        function actualizarHUD() {
+            document.getElementById('v-credits').textContent = '$' + estado.creditos;
+        }
+
+        function alerta(msg, tipo = 'info') {
+            const el = document.getElementById('alert');
+            el.textContent = msg;
+            el.className = 'show ' + tipo;
+            clearTimeout(el._timeout);
+            el._timeout = setTimeout(() => { el.className = ''; }, 3000);
         }
 
         function togglePause() {
@@ -1259,168 +1188,110 @@
             menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
         }
 
-        // ================================================================
-        // 12. JOYSTICK
-        // ================================================================
-        const joystickContainer = document.getElementById('joystick-container');
-        const joystickThumb = document.getElementById('joystick-thumb');
-
-        function initJoystick() {
-            const start = (e) => {
-                e.preventDefault();
-                joystickDrag = true;
-                updateJoystick(e);
-            };
-            const move = (e) => {
-                e.preventDefault();
-                if (joystickDrag) updateJoystick(e);
-            };
-            const end = (e) => {
-                e.preventDefault();
-                joystickDrag = false;
-                joyX = 0;
-                joyY = 0;
-                joystickThumb.style.transform = 'translate(-50%, -50%)';
-            };
-
-            joystickContainer.addEventListener('touchstart', start, { passive: false });
-            joystickContainer.addEventListener('touchmove', move, { passive: false });
-            joystickContainer.addEventListener('touchend', end, { passive: false });
-            joystickContainer.addEventListener('touchcancel', end, { passive: false });
-            joystickContainer.addEventListener('mousedown', start);
-            document.addEventListener('mousemove', (e) => { if (joystickDrag) updateJoystick(e); });
-            document.addEventListener('mouseup', end);
-        }
+        // ============================================================
+        // 12. CONTROLES TÁCTILES
+        // ============================================================
+        // Joystick
+        const jContainer = document.getElementById('joystick');
+        const jThumb = document.getElementById('joystick-thumb');
 
         function updateJoystick(e) {
-            const rect = joystickContainer.getBoundingClientRect();
+            const rect = jContainer.getBoundingClientRect();
             const cx = rect.left + rect.width / 2;
             const cy = rect.top + rect.height / 2;
             const maxDist = rect.width / 2 - 20;
 
-            let clientX, clientY;
+            let cx2, cy2;
             if (e.touches) {
-                clientX = e.touches[0].clientX;
-                clientY = e.touches[0].clientY;
+                cx2 = e.touches[0].clientX;
+                cy2 = e.touches[0].clientY;
             } else {
-                clientX = e.clientX;
-                clientY = e.clientY;
+                cx2 = e.clientX;
+                cy2 = e.clientY;
             }
 
-            let dx = (clientX - cx) / maxDist;
-            let dy = (clientY - cy) / maxDist;
+            let dx = (cx2 - cx) / maxDist;
+            let dy = (cy2 - cy) / maxDist;
             const dist = Math.sqrt(dx * dx + dy * dy);
 
-            if (dist > 1) {
-                dx /= dist;
-                dy /= dist;
-            }
+            if (dist > 1) { dx /= dist; dy /= dist; }
 
             joyX = Math.max(-1, Math.min(1, dx));
             joyY = Math.max(-1, Math.min(1, -dy));
 
-            const thumbX = joyX * maxDist;
-            const thumbY = joyY * -maxDist;
-            joystickThumb.style.transform = `translate(calc(-50% + ${thumbX}px), calc(-50% + ${thumbY}px))`;
+            jThumb.style.transform = `translate(calc(-50% + ${joyX * maxDist}px), calc(-50% + ${-joyY * maxDist}px))`;
         }
 
-        initJoystick();
+        function resetJoystick() {
+            joyX = 0;
+            joyY = 0;
+            jThumb.style.transform = 'translate(-50%, -50%)';
+        }
 
-        // ================================================================
-        // 13. PALANCA DE POTENCIA
-        // ================================================================
-        const throttleHandle = document.getElementById('throttle-handle');
-        let throttleDrag = false;
+        jContainer.addEventListener('touchstart', (e) => { e.preventDefault(); joystickDrag = true; updateJoystick(e); }, { passive: false });
+        document.addEventListener('touchmove', (e) => { if (joystickDrag) { e.preventDefault(); updateJoystick(e); } }, { passive: false });
+        document.addEventListener('touchend', () => { joystickDrag = false; resetJoystick(); });
+        jContainer.addEventListener('mousedown', (e) => { joystickDrag = true; updateJoystick(e); });
+        document.addEventListener('mousemove', (e) => { if (joystickDrag) updateJoystick(e); });
+        document.addEventListener('mouseup', () => { joystickDrag = false; resetJoystick(); });
+
+        // Palanca de potencia
+        const tHandle = document.getElementById('throttle-handle');
+        let tDrag = false;
 
         function updateThrottle(e) {
-            const trackRect = document.getElementById('throttle-track').getBoundingClientRect();
-            let clientY;
-            if (e.touches) {
-                clientY = e.touches[0].clientY;
-            } else {
-                clientY = e.clientY;
-            }
-            const y = clientY - trackRect.top;
-            const percent = 1 - Math.max(0, Math.min(1, y / trackRect.height));
-            const value = Math.round(percent * 100);
-            throttleHandle.style.bottom = percent * 100 + '%';
-            document.getElementById('throttle-label').textContent = value + '%';
-            if (avionEstado === 'volando') {
-                throttleTarget = value;
+            const track = document.getElementById('throttle-track').getBoundingClientRect();
+            let y;
+            if (e.touches) { y = e.touches[0].clientY; } else { y = e.clientY; }
+            const percent = 1 - Math.max(0, Math.min(1, (y - track.top) / track.height));
+            const val = Math.round(percent * 100);
+            tHandle.style.bottom = percent * 100 + '%';
+            document.getElementById('throttle-label').textContent = val + '%';
+            if (avionEstado === 'volando' && motorEncendido) {
+                throttle = val;
             }
         }
 
-        throttleHandle.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            throttleDrag = true;
-            updateThrottle(e);
-        }, { passive: false });
+        tHandle.addEventListener('touchstart', (e) => { e.preventDefault(); tDrag = true; updateThrottle(e); }, { passive: false });
+        document.addEventListener('touchmove', (e) => { if (tDrag) { e.preventDefault(); updateThrottle(e); } }, { passive: false });
+        document.addEventListener('touchend', () => { tDrag = false; });
+        tHandle.addEventListener('mousedown', (e) => { tDrag = true; updateThrottle(e); });
+        document.addEventListener('mousemove', (e) => { if (tDrag) updateThrottle(e); });
+        document.addEventListener('mouseup', () => { tDrag = false; });
 
-        document.addEventListener('touchmove', (e) => {
-            if (throttleDrag) {
-                e.preventDefault();
-                updateThrottle(e);
-            }
-        }, { passive: false });
-
-        document.addEventListener('touchend', () => { throttleDrag = false; });
-
-        throttleHandle.addEventListener('mousedown', (e) => {
-            throttleDrag = true;
-            updateThrottle(e);
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (throttleDrag) updateThrottle(e);
-        });
-
-        document.addEventListener('mouseup', () => { throttleDrag = false; });
-
-        // ================================================================
-        // 14. EVENTOS DE BOTONES
-        // ================================================================
+        // ============================================================
+        // 13. EVENTOS DE BOTONES
+        // ============================================================
         document.getElementById('btn-engine').addEventListener('click', toggleEngine);
         document.getElementById('btn-spray').addEventListener('click', toggleSpray);
         document.getElementById('btn-flaps').addEventListener('click', toggleFlaps);
         document.getElementById('btn-brake').addEventListener('click', toggleBrake);
         document.getElementById('btn-rescue').addEventListener('click', rescuePlane);
-        document.getElementById('btn-save').addEventListener('click', guardarPartida);
         document.getElementById('btn-pause').addEventListener('click', togglePause);
         document.getElementById('btn-resume').addEventListener('click', togglePause);
-        document.getElementById('btn-save-menu').addEventListener('click', () => { guardarPartida(); togglePause(); });
-        document.getElementById('btn-load-menu').addEventListener('click', () => { cargarPartida(); togglePause(); });
-        document.getElementById('btn-restart').addEventListener('click', () => {
-            if (confirm('¿Reiniciar?')) {
-                localStorage.removeItem('agroflight_save');
-                location.reload();
-            }
-        });
-        document.getElementById('btn-quit').addEventListener('click', () => {
-            if (confirm('¿Salir?')) {
-                guardarPartida();
-                togglePause();
-                mostrarAlerta('👋 ¡Hasta luego!', 'info');
-            }
-        });
+        document.getElementById('btn-save').addEventListener('click', () => { alerta('💾 Partida guardada', 'success'); });
+        document.getElementById('btn-save-menu').addEventListener('click', () => { alerta('💾 Guardado', 'success'); togglePause(); });
+        document.getElementById('btn-load-menu').addEventListener('click', () => { alerta('📂 Partida cargada', 'success'); togglePause(); });
+        document.getElementById('btn-restart').addEventListener('click', () => { if (confirm('¿Reiniciar?')) location.reload(); });
+        document.getElementById('btn-quit').addEventListener('click', () => { if (confirm('¿Salir?')) { togglePause(); alerta('👋 ¡Hasta luego!', 'info'); } });
         document.getElementById('btn-cam').addEventListener('click', () => {
             cameraMode = (cameraMode + 1) % 3;
             const modos = ['EXTERNA', 'CABINA', 'PANORÁMICA'];
-            mostrarAlerta(`📷 ${modos[cameraMode]}`, 'info');
+            alerta(`📷 ${modos[cameraMode]}`, 'info');
         });
-        document.getElementById('btn-shop').addEventListener('click', () => {
-            mostrarAlerta('🏪 TIENDA (Próximamente)', 'info');
-        });
+        document.getElementById('btn-shop').addEventListener('click', () => { alerta('🏪 Tienda próximamente', 'info'); });
         document.getElementById('btn-mission').addEventListener('click', () => {
-            mostrarAlerta('📋 MISIÓN: Fumigar 10 hectáreas', 'info');
+            const wps = waypoints.filter(w => !w.completado);
+            alerta(`📋 ${wps.length} misiones pendientes - Sigue la flecha GPS`, 'info');
         });
 
-        // ================================================================
-        // 15. TECLADO
-        // ================================================================
+        // ============================================================
+        // 14. TECLADO
+        // ============================================================
         document.addEventListener('keydown', (e) => {
             switch (e.key.toLowerCase()) {
-                case 'w': throttleTarget = Math.min(100, throttleTarget + 10); e.preventDefault(); break;
-                case 's': throttleTarget = Math.max(0, throttleTarget - 10); e.preventDefault(); break;
+                case 'w': if (avionEstado === 'volando') throttle = Math.min(100, throttle + 10); e.preventDefault(); break;
+                case 's': if (avionEstado === 'volando') throttle = Math.max(0, throttle - 10); e.preventDefault(); break;
                 case 'arrowup': joyY = 1; e.preventDefault(); break;
                 case 'arrowdown': joyY = -1; e.preventDefault(); break;
                 case 'arrowleft': joyX = -1; e.preventDefault(); break;
@@ -1434,7 +1305,6 @@
                 case 'escape': togglePause(); e.preventDefault(); break;
             }
         });
-
         document.addEventListener('keyup', (e) => {
             switch (e.key.toLowerCase()) {
                 case 'arrowup':
@@ -1444,39 +1314,40 @@
             }
         });
 
-        // ================================================================
-        // 16. CÁMARA
-        // ================================================================
+        // ============================================================
+        // 15. CÁMARA
+        // ============================================================
         function updateCamera() {
             const pos = airplane.position;
             switch (cameraMode) {
                 case 0:
-                    const off = new THREE.Vector3(0, 8, 25).applyQuaternion(airplane.quaternion);
+                    const off = new THREE.Vector3(0, 6, 20).applyQuaternion(airplane.quaternion);
                     camera.position.copy(pos).add(off);
-                    camera.lookAt(pos.clone().add(new THREE.Vector3(0, 2, -15).applyQuaternion(airplane.quaternion)));
+                    camera.lookAt(pos.clone().add(new THREE.Vector3(0, 1, -10).applyQuaternion(airplane.quaternion)));
                     break;
                 case 1:
-                    const cp = pos.clone().add(new THREE.Vector3(0, 2.8, 0.5).applyQuaternion(airplane.quaternion));
+                    const cp = pos.clone().add(new THREE.Vector3(0, 2.5, 0.3).applyQuaternion(airplane.quaternion));
                     camera.position.copy(cp);
-                    camera.lookAt(pos.clone().add(new THREE.Vector3(0, 2.5, -30).applyQuaternion(airplane.quaternion)));
+                    camera.lookAt(pos.clone().add(new THREE.Vector3(0, 2, -25).applyQuaternion(airplane.quaternion)));
                     break;
                 case 2:
-                    const dist = 40 + speed * 0.1;
-                    const angle = Date.now() * 0.0001;
+                    const dist = 35 + speed * 0.05;
+                    const ang = Date.now() * 0.00008;
                     camera.position.set(
-                        pos.x + Math.sin(angle) * dist,
-                        pos.y + 15 + Math.sin(angle * 0.5) * 5,
-                        pos.z + Math.cos(angle) * dist
+                        pos.x + Math.sin(ang) * dist,
+                        pos.y + 12 + Math.sin(ang * 0.7) * 4,
+                        pos.z + Math.cos(ang) * dist
                     );
                     camera.lookAt(pos);
                     break;
             }
         }
 
-        // ================================================================
-        // 17. BUCLE PRINCIPAL
-        // ================================================================
+        // ============================================================
+        // 16. BUCLE PRINCIPAL
+        // ============================================================
         const clock = new THREE.Clock();
+        let paused = false;
 
         function animate() {
             requestAnimationFrame(animate);
@@ -1485,28 +1356,30 @@
             if (document.getElementById('pause-menu').style.display !== 'flex') {
                 updatePhysics(delta);
                 updateCamera();
+                // Actualizar throttle en HUD
+                document.getElementById('throttle-label').textContent = Math.round(throttle) + '%';
             }
 
             renderer.render(scene, camera);
         }
 
-        // ================================================================
-        // 18. INICIO
-        // ================================================================
+        // ============================================================
+        // 17. INICIO
+        // ============================================================
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // Mostrar panel de preparación
+        // Mostrar panel de preparación al inicio
         setTimeout(() => {
-            document.getElementById('panel-preparacion').style.display = 'block';
-            mostrarAlerta('🚜 PREPARA TU AVION', 'info');
+            document.getElementById('prep-panel').style.display = 'block';
+            alerta('🚜 PREPARA TU AVION', 'info');
         }, 500);
 
-        // Cargar partida
-        setTimeout(cargarPartida, 1000);
+        // Cargar créditos
+        actualizarHUD();
 
         animate();
     </script>
