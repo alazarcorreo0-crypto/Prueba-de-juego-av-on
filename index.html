@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Simulador Air Tractor - Versión Móvil</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Air Tractor - Fijo</title>
     <style>
         * {
             margin: 0;
@@ -13,576 +13,522 @@
             -webkit-user-select: none;
             user-select: none;
         }
-        
         body {
             overflow: hidden;
-            font-family: 'Arial', sans-serif;
-            background: #000;
+            font-family: Arial, sans-serif;
+            background: #1a2a3a;
             touch-action: none;
             position: fixed;
             width: 100%;
             height: 100%;
         }
-        
         #gameCanvas {
             display: block;
             width: 100vw;
             height: 100vh;
             touch-action: none;
         }
-        
         #hud {
             position: fixed;
             top: 10px;
             left: 10px;
-            color: white;
-            font-size: 12px;
+            color: #fff;
+            font-size: 13px;
             background: rgba(0,0,0,0.8);
-            padding: 10px;
-            border-radius: 8px;
+            padding: 12px 16px;
+            border-radius: 10px;
             pointer-events: none;
             z-index: 10;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-            border: 1px solid rgba(255,255,255,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(4px);
+            min-width: 140px;
         }
-        
-        .hud-value {
-            color: #FFD700;
-            font-weight: bold;
-        }
-        
-        #controls-info {
-            position: fixed;
-            bottom: 120px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: white;
-            background: rgba(0,0,0,0.7);
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 11px;
-            text-align: center;
-            pointer-events: none;
-            z-index: 10;
-        }
-        
+        .hud-value { color: #FFD700; font-weight: bold; }
         .warning {
             color: #ff4444;
             font-weight: bold;
             animation: blink 0.5s infinite;
         }
-        
         @keyframes blink {
             0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
+            50% { opacity: 0.2; }
         }
-        
-        /* Controles táctiles */
         #touch-controls {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            height: 120px;
+            height: 130px;
             z-index: 20;
             pointer-events: none;
         }
-        
         .control-btn {
             position: absolute;
-            width: 60px;
-            height: 60px;
+            width: 62px;
+            height: 62px;
             border-radius: 50%;
-            background: rgba(255,255,255,0.3);
-            border: 2px solid rgba(255,255,255,0.5);
-            color: white;
-            font-size: 24px;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.6);
+            color: #fff;
+            font-size: 26px;
             display: flex;
             align-items: center;
             justify-content: center;
             pointer-events: auto;
             touch-action: none;
             backdrop-filter: blur(5px);
-            transition: all 0.1s;
-        }
-        
-        .control-btn:active {
-            background: rgba(255,255,255,0.6);
-            transform: scale(0.9);
-        }
-        
-        #btn-up {
-            left: 50%;
-            transform: translateX(-50%);
-            bottom: 60px;
-        }
-        
-        #btn-down {
-            left: 50%;
-            transform: translateX(-50%);
-            bottom: 0;
-        }
-        
-        #btn-left {
-            left: calc(50% - 60px);
-            bottom: 30px;
-        }
-        
-        #btn-right {
-            left: calc(50% + 60px);
-            bottom: 30px;
-        }
-        
-        #btn-throttle {
-            right: 20px;
-            bottom: 60px;
-            background: rgba(255,100,100,0.4);
-            border-color: rgba(255,100,100,0.7);
-            font-size: 20px;
-        }
-        
-        #btn-brake {
-            right: 20px;
-            bottom: 0;
-            background: rgba(100,100,255,0.4);
-            border-color: rgba(100,100,255,0.7);
-            font-size: 20px;
-        }
-        
-        #btn-takeoff {
-            left: 20px;
-            bottom: 60px;
-            background: rgba(100,255,100,0.4);
-            border-color: rgba(100,255,100,0.7);
-            font-size: 14px;
+            transition: 0.05s;
             font-weight: bold;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
-        
-        #btn-land {
-            left: 20px;
-            bottom: 0;
-            background: rgba(255,255,100,0.4);
-            border-color: rgba(255,255,100,0.7);
-            font-size: 14px;
-            font-weight: bold;
+        .control-btn:active, .control-btn.active {
+            background: rgba(255,255,255,0.5);
+            transform: scale(0.88);
+            border-color: #fff;
         }
-        
+        #btn-up { left: 50%; transform: translateX(-50%); bottom: 68px; }
+        #btn-down { left: 50%; transform: translateX(-50%); bottom: 4px; }
+        #btn-left { left: calc(50% - 70px); bottom: 36px; }
+        #btn-right { left: calc(50% + 70px); bottom: 36px; }
+        #btn-throttle { right: 16px; bottom: 68px; background: rgba(255,80,80,0.4); border-color: rgba(255,80,80,0.7); font-size: 22px; }
+        #btn-brake { right: 16px; bottom: 4px; background: rgba(80,80,255,0.4); border-color: rgba(80,80,255,0.7); font-size: 22px; }
+        #btn-takeoff { left: 16px; bottom: 68px; background: rgba(80,255,80,0.3); border-color: rgba(80,255,80,0.6); font-size: 13px; }
+        #btn-land { left: 16px; bottom: 4px; background: rgba(255,255,80,0.3); border-color: rgba(255,255,80,0.6); font-size: 13px; }
         #btn-reset {
             position: fixed;
-            top: 10px;
-            right: 10px;
-            width: 50px;
-            height: 50px;
+            top: 12px;
+            right: 12px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
-            background: rgba(255,0,0,0.5);
-            border: 2px solid rgba(255,0,0,0.7);
-            color: white;
-            font-size: 20px;
+            background: rgba(255,50,50,0.6);
+            border: 2px solid rgba(255,50,50,0.8);
+            color: #fff;
+            font-size: 22px;
             pointer-events: auto;
             z-index: 30;
             touch-action: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #btn-reset:active { transform: scale(0.85); }
+        #controls-info {
+            position: fixed;
+            bottom: 138px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ddd;
+            background: rgba(0,0,0,0.6);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 11px;
+            pointer-events: none;
+            z-index: 10;
+            backdrop-filter: blur(4px);
+            white-space: nowrap;
+        }
+        @media (max-width: 480px) {
+            .control-btn { width: 52px; height: 52px; font-size: 20px; }
+            #btn-up { bottom: 60px; }
+            #btn-down { bottom: 4px; }
+            #btn-left { left: calc(50% - 60px); bottom: 32px; }
+            #btn-right { left: calc(50% + 60px); bottom: 32px; }
+            #btn-throttle { right: 10px; bottom: 60px; }
+            #btn-brake { right: 10px; bottom: 4px; }
+            #btn-takeoff { left: 10px; bottom: 60px; font-size: 11px; }
+            #btn-land { left: 10px; bottom: 4px; font-size: 11px; }
+            #hud { font-size: 11px; padding: 8px 12px; }
         }
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas"></canvas>
-    
-    <div id="hud">
-        <div>🚀 Velocidad: <span class="hud-value" id="speed">0</span> km/h</div>
-        <div>📏 Altitud: <span class="hud-value" id="altitude">0</span> m</div>
-        <div>✈️ Estado: <span class="hud-value" id="state">En tierra</span></div>
-        <div id="warning" style="display:none;" class="warning">⚠️ ¡PELIGRO! ¡Demasiado bajo!</div>
-    </div>
-    
-    <div id="controls-info">
-        Usa los botones táctiles para volar
-    </div>
-    
-    <button id="btn-reset" ontouchstart="resetPlane()">↺</button>
-    
-    <div id="touch-controls">
-        <div class="control-btn" id="btn-up" ontouchstart="setControl('up', true)" ontouchend="setControl('up', false)">▲</div>
-        <div class="control-btn" id="btn-down" ontouchstart="setControl('down', true)" ontouchend="setControl('down', false)">▼</div>
-        <div class="control-btn" id="btn-left" ontouchstart="setControl('left', true)" ontouchend="setControl('left', false)">◀</div>
-        <div class="control-btn" id="btn-right" ontouchstart="setControl('right', true)" ontouchend="setControl('right', false)">▶</div>
-        <div class="control-btn" id="btn-throttle" ontouchstart="setControl('throttle', true)" ontouchend="setControl('throttle', false)">⚡</div>
-        <div class="control-btn" id="btn-brake" ontouchstart="setControl('brake', true)" ontouchend="setControl('brake', false)">🛑</div>
-        <div class="control-btn" id="btn-takeoff" ontouchstart="takeoff()">🛫</div>
-        <div class="control-btn" id="btn-land" ontouchstart="land()">🛬</div>
-    </div>
 
-    <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        
-        // Ajustar canvas al tamaño de la ventana
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        resizeCanvas();
-        
-        // Variables del juego
-        let gameTime = 0;
-        let cameraX = 0;
-        let cameraY = 0;
-        
-        // Estado del avión
-        const plane = {
-            x: 0,
-            y: 0,
-            z: 0,
-            speed: 0,
-            pitch: 0,
-            roll: 0,
-            yaw: 0,
-            throttle: 0,
-            flying: false,
-            onGround: true
-        };
-        
-        // Controles táctiles
-        const touchControls = {
-            up: false,
-            down: false,
-            left: false,
-            right: false,
-            throttle: false,
-            brake: false
-        };
-        
-        function setControl(control, value) {
-            touchControls[control] = value;
-        }
-        
-        // Campos agrícolas
-        const fields = [];
-        const fieldColors = ['#8B7355', '#A0522D', '#CD853F', '#D2691E', '#8B4513', '#DAA520'];
-        
-        function generateFields() {
-            for (let i = 0; i < 60; i++) {
-                const x = (Math.random() - 0.5) * 4000;
-                const y = (Math.random() - 0.5) * 4000;
-                const width = 40 + Math.random() * 120;
-                const height = 40 + Math.random() * 120;
-                const color = fieldColors[Math.floor(Math.random() * fieldColors.length)];
-                
-                fields.push({
-                    x, y, width, height, color,
-                    planted: true
-                });
-            }
-        }
-        
-        // Árboles
-        const trees = [];
-        function generateTrees() {
-            for (let i = 0; i < 150; i++) {
-                trees.push({
-                    x: (Math.random() - 0.5) * 4500,
-                    y: (Math.random() - 0.5) * 4500,
-                    size: 2 + Math.random() * 4
-                });
-            }
-        }
-        
-        // Pistas de aterrizaje
-        const runways = [
-            { x: 0, y: 0, length: 700, width: 35, direction: 0 },
-            { x: 1000, y: 600, length: 600, width: 30, direction: Math.PI / 4 },
-            { x: -800, y: -500, length: 650, width: 32, direction: -Math.PI / 6 },
-            { x: 500, y: -800, length: 550, width: 28, direction: Math.PI / 3 }
-        ];
-        
-        // Inicializar
-        generateFields();
-        generateTrees();
-        
-        function takeoff() {
-            if (plane.onGround && plane.speed > 40) {
-                plane.flying = true;
-                plane.onGround = false;
-                plane.z = 1;
-                plane.pitch = 0.15;
-            }
-        }
-        
-        function land() {
-            if (plane.flying && plane.z < 5) {
+<canvas id="gameCanvas"></canvas>
+
+<div id="hud">
+    <div>🚀 Velocidad: <span class="hud-value" id="speed">0</span> km/h</div>
+    <div>📏 Altitud: <span class="hud-value" id="altitude">0</span> m</div>
+    <div>✈️ Estado: <span class="hud-value" id="state">En tierra</span></div>
+    <div id="warning" style="display:none;" class="warning">⚠️ ¡PELIGRO! ¡Muy bajo!</div>
+</div>
+
+<div id="controls-info">⬆⬇⬅➡ Acelerar ⚡ Frenar 🛑</div>
+
+<button id="btn-reset">↺</button>
+
+<div id="touch-controls">
+    <div class="control-btn" id="btn-up">▲</div>
+    <div class="control-btn" id="btn-down">▼</div>
+    <div class="control-btn" id="btn-left">◀</div>
+    <div class="control-btn" id="btn-right">▶</div>
+    <div class="control-btn" id="btn-throttle">⚡</div>
+    <div class="control-btn" id="btn-brake">🛑</div>
+    <div class="control-btn" id="btn-takeoff">🛫</div>
+    <div class="control-btn" id="btn-land">🛬</div>
+</div>
+
+<script>
+// ============================================================
+//  AIR TRACTOR - VERSIÓN CORREGIDA (CONTROLES TÁCTILES FIJOS)
+// ============================================================
+
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+// ---------- ESTADO DEL AVIÓN ----------
+const plane = {
+    x: 0, y: 0, z: 0,
+    speed: 0,
+    pitch: 0,      // cabeceo
+    roll: 0,       // alabeo
+    yaw: 0,        // guiñada
+    throttle: 0,
+    flying: false,
+    onGround: true
+};
+
+let cameraX = 0, cameraY = 0;
+
+// ---------- CONTROLES (se actualizan con eventos) ----------
+const controls = {
+    up: false,
+    down: false,
+    left: false,
+    right: false,
+    throttle: false,
+    brake: false
+};
+
+// ---------- GENERAR MUNDO ----------
+const fields = [];
+const fieldColors = ['#8B7355','#A0522D','#CD853F','#D2691E','#8B4513','#DAA520','#B8860B','#9ACD32'];
+for (let i = 0; i < 70; i++) {
+    fields.push({
+        x: (Math.random() - 0.5) * 4500,
+        y: (Math.random() - 0.5) * 4500,
+        w: 40 + Math.random() * 140,
+        h: 40 + Math.random() * 140,
+        color: fieldColors[Math.floor(Math.random() * fieldColors.length)]
+    });
+}
+
+const trees = [];
+for (let i = 0; i < 180; i++) {
+    trees.push({
+        x: (Math.random() - 0.5) * 4800,
+        y: (Math.random() - 0.5) * 4800,
+        s: 2 + Math.random() * 5
+    });
+}
+
+const runways = [
+    { x: 0, y: 0, length: 700, width: 34, angle: 0 },
+    { x: 900, y: 700, length: 600, width: 30, angle: 0.8 },
+    { x: -850, y: -600, length: 620, width: 32, angle: -0.6 },
+    { x: 600, y: -900, length: 550, width: 28, angle: 1.2 }
+];
+
+// ---------- FUNCIONES DE CONTROL ----------
+function setupButton(id, controlName) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const start = (e) => {
+        e.preventDefault();
+        controls[controlName] = true;
+        el.classList.add('active');
+    };
+    const end = (e) => {
+        e.preventDefault();
+        controls[controlName] = false;
+        el.classList.remove('active');
+    };
+    el.addEventListener('touchstart', start, { passive: false });
+    el.addEventListener('touchend', end, { passive: false });
+    el.addEventListener('touchcancel', end, { passive: false });
+    // También para mouse (debug en PC)
+    el.addEventListener('mousedown', start);
+    el.addEventListener('mouseup', end);
+    el.addEventListener('mouseleave', end);
+}
+
+setupButton('btn-up', 'up');
+setupButton('btn-down', 'down');
+setupButton('btn-left', 'left');
+setupButton('btn-right', 'right');
+setupButton('btn-throttle', 'throttle');
+setupButton('btn-brake', 'brake');
+
+// Botones especiales
+document.getElementById('btn-takeoff').addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    if (plane.onGround && plane.speed > 35) {
+        plane.flying = true;
+        plane.onGround = false;
+        plane.z = 1;
+        plane.pitch = 0.15;
+    }
+}, { passive: false });
+document.getElementById('btn-takeoff').addEventListener('mousedown', () => {
+    if (plane.onGround && plane.speed > 35) {
+        plane.flying = true;
+        plane.onGround = false;
+        plane.z = 1;
+        plane.pitch = 0.15;
+    }
+});
+
+document.getElementById('btn-land').addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    if (plane.flying && plane.z < 8) {
+        plane.flying = false;
+        plane.onGround = true;
+        plane.z = 0;
+        plane.pitch = 0;
+        plane.roll = 0;
+    }
+}, { passive: false });
+document.getElementById('btn-land').addEventListener('mousedown', () => {
+    if (plane.flying && plane.z < 8) {
+        plane.flying = false;
+        plane.onGround = true;
+        plane.z = 0;
+        plane.pitch = 0;
+        plane.roll = 0;
+    }
+});
+
+document.getElementById('btn-reset').addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    resetPlane();
+}, { passive: false });
+document.getElementById('btn-reset').addEventListener('mousedown', resetPlane);
+
+function resetPlane() {
+    plane.x = 0; plane.y = 0; plane.z = 0;
+    plane.speed = 0;
+    plane.pitch = 0; plane.roll = 0; plane.yaw = 0;
+    plane.throttle = 0;
+    plane.flying = false;
+    plane.onGround = true;
+    controls.up = controls.down = controls.left = controls.right = false;
+    controls.throttle = false; controls.brake = false;
+    document.querySelectorAll('.control-btn').forEach(el => el.classList.remove('active'));
+}
+
+// ---------- ACTUALIZACIÓN FÍSICA ----------
+function update() {
+    // Acelerador / freno
+    if (controls.throttle) plane.throttle = Math.min(1, plane.throttle + 0.02);
+    if (controls.brake) plane.throttle = Math.max(0, plane.throttle - 0.04);
+
+    // Cabeceo
+    if (controls.up) plane.pitch = Math.min(0.5, plane.pitch + 0.025);
+    if (controls.down) plane.pitch = Math.max(-0.3, plane.pitch - 0.025);
+    if (!controls.up && !controls.down) plane.pitch *= 0.93;
+
+    // Alabeo
+    if (controls.left) plane.roll = Math.max(-0.5, plane.roll - 0.025);
+    if (controls.right) plane.roll = Math.min(0.5, plane.roll + 0.025);
+    if (!controls.left && !controls.right) plane.roll *= 0.93;
+
+    // Física
+    const accel = plane.throttle * 9;
+    const drag = plane.speed * 0.018;
+    plane.speed += (accel - drag) * 0.016;
+    plane.speed = Math.max(0, Math.min(190, plane.speed));
+
+    const radYaw = plane.yaw;
+
+    if (plane.flying) {
+        // Vuelo
+        plane.x += Math.cos(radYaw) * Math.cos(plane.roll) * plane.speed * 0.08;
+        plane.y += Math.sin(radYaw) * Math.cos(plane.roll) * plane.speed * 0.08;
+        plane.z += Math.sin(plane.pitch) * plane.speed * 0.045;
+
+        // Gravedad y pérdida
+        if (plane.speed < 35) {
+            plane.z = Math.max(0, plane.z - 0.2);
+            if (plane.z <= 0) {
+                plane.z = 0;
                 plane.flying = false;
                 plane.onGround = true;
-                plane.z = 0;
                 plane.pitch = 0;
-                plane.roll = 0;
             }
         }
-        
-        function resetPlane() {
-            plane.x = 0;
-            plane.y = 0;
-            plane.z = 0;
-            plane.speed = 0;
-            plane.pitch = 0;
-            plane.roll = 0;
-            plane.yaw = 0;
-            plane.throttle = 0;
-            plane.flying = false;
-            plane.onGround = true;
+        // Giro con alabeo
+        if (Math.abs(plane.roll) > 0.08) {
+            plane.yaw += plane.roll * 0.018;
         }
-        
-        function update() {
-            gameTime += 0.016;
-            
-            // Controles táctiles
-            if (touchControls.throttle) plane.throttle = Math.min(1, plane.throttle + 0.015);
-            if (touchControls.brake) plane.throttle = Math.max(0, plane.throttle - 0.03);
-            
-            if (touchControls.up) plane.pitch = Math.min(0.5, plane.pitch + 0.02);
-            if (touchControls.down) plane.pitch = Math.max(-0.3, plane.pitch - 0.02);
-            
-            if (touchControls.left) plane.roll = Math.max(-0.5, plane.roll - 0.02);
-            if (touchControls.right) plane.roll = Math.min(0.5, plane.roll + 0.02);
-            
-            // Auto-centrar controles
-            if (!touchControls.left && !touchControls.right) {
-                plane.roll *= 0.95;
-            }
-            if (!touchControls.up && !touchControls.down) {
-                plane.pitch *= 0.95;
-            }
-            
-            // Física de vuelo
-            if (plane.flying || plane.speed > 0) {
-                const acceleration = plane.throttle * 8;
-                const drag = plane.speed * 0.015;
-                
-                plane.speed += (acceleration - drag) * 0.016;
-                plane.speed = Math.max(0, Math.min(180, plane.speed));
-                
-                const radYaw = plane.yaw;
-                
-                if (plane.flying) {
-                    // Movimiento 3D
-                    plane.x += Math.cos(radYaw) * Math.cos(plane.roll) * plane.speed * 0.08;
-                    plane.y += Math.sin(radYaw) * Math.cos(plane.roll) * plane.speed * 0.08;
-                    plane.z += Math.sin(plane.pitch) * plane.speed * 0.04;
-                    
-                    // Gravedad
-                    if (plane.speed < 40) {
-                        plane.z = Math.max(0, plane.z - 0.15);
-                        if (plane.z <= 0) {
-                            plane.z = 0;
-                            plane.flying = false;
-                            plane.onGround = true;
-                            plane.pitch = 0;
-                        }
-                    }
-                } else {
-                    // Movimiento en tierra
-                    plane.x += Math.cos(radYaw) * plane.speed * 0.08;
-                    plane.y += Math.sin(radYaw) * plane.speed * 0.08;
-                    plane.speed *= 0.97;
-                }
-                
-                // Yaw control
-                if (plane.flying && Math.abs(plane.roll) > 0.1) {
-                    plane.yaw += plane.roll * 0.015;
-                }
-            }
-            
-            // Límites de altitud
-            plane.z = Math.max(0, Math.min(250, plane.z));
-            
-            // Cámara sigue al avión
-            cameraX = plane.x;
-            cameraY = plane.y;
-            
-            // Actualizar HUD
-            document.getElementById('speed').textContent = Math.round(plane.speed * 3.6);
-            document.getElementById('altitude').textContent = Math.round(plane.z);
-            document.getElementById('state').textContent = plane.flying ? 'Volando ✈️' : 'En tierra 🚜';
-            
-            // Advertencia de baja altitud
-            if (plane.flying && plane.z < 5 && plane.speed > 40) {
-                document.getElementById('warning').style.display = 'block';
-            } else {
-                document.getElementById('warning').style.display = 'none';
-            }
-        }
-        
-        function draw() {
-            // Limpiar canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Fondo de cielo
-            const skyGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            skyGradient.addColorStop(0, '#87CEEB');
-            skyGradient.addColorStop(0.7, '#B0E0E6');
-            skyGradient.addColorStop(1, '#F0E6D3');
-            ctx.fillStyle = skyGradient;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // Transformación de cámara
-            ctx.save();
-            const zoom = Math.max(0.6, 1.2 - plane.z * 0.002);
-            ctx.translate(canvas.width / 2 - cameraX * zoom, canvas.height / 2 - cameraY * zoom);
-            ctx.scale(zoom, zoom);
-            
-            // Dibujar suelo
-            drawGround();
-            
-            // Dibujar campos
-            drawFields();
-            
-            // Dibujar árboles
-            drawTrees();
-            
-            // Dibujar pistas
-            drawRunways();
-            
-            // Dibujar avión
-            drawPlane();
-            
-            ctx.restore();
-        }
-        
-        function drawGround() {
-            ctx.fillStyle = '#90B77D';
-            ctx.fillRect(-2500, -2500, 5000, 5000);
-            
-            // Textura de hierba
-            for (let i = 0; i < 300; i++) {
-                const x = ((i * 137) % 5000) - 2500;
-                const y = ((i * 251) % 5000) - 2500;
-                ctx.fillStyle = '#7FA06D';
-                ctx.fillRect(x, y, 2, 2);
-            }
-        }
-        
-        function drawFields() {
-            fields.forEach(field => {
-                ctx.fillStyle = field.color;
-                ctx.fillRect(field.x, field.y, field.width, field.height);
-                
-                // Líneas de cultivo
-                ctx.strokeStyle = '#654321';
-                ctx.lineWidth = 1;
-                for (let i = 0; i < field.width; i += 8) {
-                    ctx.beginPath();
-                    ctx.moveTo(field.x + i, field.y);
-                    ctx.lineTo(field.x + i, field.y + field.height);
-                    ctx.stroke();
-                }
-            });
-        }
-        
-        function drawTrees() {
-            trees.forEach(tree => {
-                ctx.fillStyle = '#654321';
-                ctx.fillRect(tree.x - 1, tree.y - 1, 2, 3);
-                ctx.fillStyle = '#2E8B57';
-                ctx.beginPath();
-                ctx.arc(tree.x, tree.y - 2, tree.size, 0, Math.PI * 2);
-                ctx.fill();
-            });
-        }
-        
-        function drawRunways() {
-            runways.forEach(runway => {
-                ctx.save();
-                ctx.translate(runway.x, runway.y);
-                ctx.rotate(runway.direction);
-                
-                ctx.fillStyle = '#808080';
-                ctx.fillRect(-runway.length/2, -runway.width/2, runway.length, runway.width);
-                
-                // Líneas de la pista
-                ctx.strokeStyle = '#FFFFFF';
-                ctx.lineWidth = 2;
-                ctx.setLineDash([15, 15]);
-                ctx.beginPath();
-                ctx.moveTo(-runway.length/2, 0);
-                ctx.lineTo(runway.length/2, 0);
-                ctx.stroke();
-                ctx.setLineDash([]);
-                
-                ctx.restore();
-            });
-        }
-        
-        function drawPlane() {
-            ctx.save();
-            ctx.translate(plane.x, plane.y);
-            ctx.rotate(plane.yaw);
-            
-            // Sombra en tierra
-            if (plane.flying) {
-                ctx.fillStyle = 'rgba(0,0,0,0.3)';
-                ctx.beginPath();
-                ctx.ellipse(0, -plane.z, 18, 6, 0, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            
-            // Cuerpo del avión
-            ctx.fillStyle = '#DC143C';
-            ctx.fillRect(-12, -2, 24, 4);
-            
-            // Nariz
-            ctx.fillStyle = '#B22222';
+    } else {
+        // En tierra
+        plane.x += Math.cos(radYaw) * plane.speed * 0.08;
+        plane.y += Math.sin(radYaw) * plane.speed * 0.08;
+        plane.speed *= 0.97;
+        // Frenado natural
+        if (plane.speed < 0.5) plane.speed = 0;
+    }
+
+    // Límites
+    plane.z = Math.max(0, Math.min(280, plane.z));
+
+    // Cámara
+    cameraX = plane.x;
+    cameraY = plane.y;
+
+    // HUD
+    document.getElementById('speed').textContent = Math.round(plane.speed * 3.6);
+    document.getElementById('altitude').textContent = Math.round(plane.z);
+    document.getElementById('state').textContent = plane.flying ? 'Volando ✈️' : 'En tierra 🚜';
+
+    const warn = document.getElementById('warning');
+    if (plane.flying && plane.z < 6 && plane.speed > 30) {
+        warn.style.display = 'block';
+    } else {
+        warn.style.display = 'none';
+    }
+}
+
+// ---------- DIBUJO ----------
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Cielo
+    const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    grad.addColorStop(0, '#4A90D9');
+    grad.addColorStop(0.6, '#87CEEB');
+    grad.addColorStop(1, '#E8D5B5');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const zoom = Math.max(0.5, 1.3 - plane.z * 0.002);
+    ctx.save();
+    ctx.translate(canvas.width/2 - cameraX * zoom, canvas.height/2 - cameraY * zoom);
+    ctx.scale(zoom, zoom);
+
+    // Suelo
+    ctx.fillStyle = '#7BA86A';
+    ctx.fillRect(-2800, -2800, 5600, 5600);
+    for (let i = 0; i < 400; i++) {
+        const x = ((i * 173) % 5600) - 2800;
+        const y = ((i * 311) % 5600) - 2800;
+        ctx.fillStyle = '#6A9A5A';
+        ctx.fillRect(x, y, 2, 2);
+    }
+
+    // Campos
+    fields.forEach(f => {
+        ctx.fillStyle = f.color;
+        ctx.fillRect(f.x, f.y, f.w, f.h);
+        ctx.strokeStyle = '#5A4A3A';
+        ctx.lineWidth = 0.5;
+        for (let i = 0; i < f.w; i += 7) {
             ctx.beginPath();
-            ctx.arc(12, 0, 2, -Math.PI/2, Math.PI/2);
-            ctx.fill();
-            
-            // Cabina
-            ctx.fillStyle = '#4169E1';
-            ctx.beginPath();
-            ctx.arc(0, -1, 3, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Alas
-            ctx.fillStyle = '#B22222';
-            ctx.fillRect(-8, -6, 16, 9);
-            
-            // Motor
-            ctx.fillStyle = '#333';
-            ctx.fillRect(9, -1, 3, 2);
-            
-            // Hélice
-            if (plane.throttle > 0) {
-                ctx.fillStyle = '#555';
-                ctx.beginPath();
-                ctx.ellipse(13, 0, 1.5, 4, 0, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            
-            // Cola
-            ctx.fillStyle = '#B22222';
-            ctx.fillRect(-16, -4, 6, 8);
-            
-            // Ruedas
-            ctx.fillStyle = '#333';
-            ctx.fillRect(-6, 2, 3, 1.5);
-            ctx.fillRect(4, 2, 3, 1.5);
-            
-            ctx.restore();
+            ctx.moveTo(f.x + i, f.y);
+            ctx.lineTo(f.x + i, f.y + f.h);
+            ctx.stroke();
         }
-        
-        function gameLoop() {
-            update();
-            draw();
-            requestAnimationFrame(gameLoop);
-        }
-        
-        // Manejar resize
-        window.addEventListener('resize', resizeCanvas);
-        
-        // Prevenir scroll en móvil
-        document.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-        }, { passive: false });
-        
-        // Iniciar juego
-        gameLoop();
-    </script>
+    });
+
+    // Árboles
+    trees.forEach(t => {
+        ctx.fillStyle = '#5A3A2A';
+        ctx.fillRect(t.x-1, t.y-1, 2, 4);
+        ctx.fillStyle = '#2D7D46';
+        ctx.beginPath();
+        ctx.arc(t.x, t.y-2, t.s, 0, Math.PI*2);
+        ctx.fill();
+    });
+
+    // Pistas
+    runways.forEach(r => {
+        ctx.save();
+        ctx.translate(r.x, r.y);
+        ctx.rotate(r.angle);
+        ctx.fillStyle = '#6A6A6A';
+        ctx.fillRect(-r.length/2, -r.width/2, r.length, r.width);
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([12, 12]);
+        ctx.beginPath();
+        ctx.moveTo(-r.length/2 + 10, 0);
+        ctx.lineTo(r.length/2 - 10, 0);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
+    });
+
+    // Avión
+    ctx.save();
+    ctx.translate(plane.x, plane.y);
+    ctx.rotate(plane.yaw);
+
+    if (plane.flying) {
+        ctx.fillStyle = 'rgba(0,0,0,0.25)';
+        ctx.beginPath();
+        ctx.ellipse(0, -plane.z, 20, 6, 0, 0, Math.PI*2);
+        ctx.fill();
+    }
+
+    // Cuerpo
+    ctx.fillStyle = '#C41E3A';
+    ctx.fillRect(-14, -2.5, 28, 5);
+    // Nariz
+    ctx.fillStyle = '#A01830';
+    ctx.beginPath();
+    ctx.arc(14, 0, 2.5, -Math.PI/2, Math.PI/2);
+    ctx.fill();
+    // Cabina
+    ctx.fillStyle = '#3A6BB5';
+    ctx.beginPath();
+    ctx.arc(1, -1.5, 3.5, 0, Math.PI*2);
+    ctx.fill();
+    // Alas
+    ctx.fillStyle = '#A01830';
+    ctx.fillRect(-9, -7, 18, 11);
+    // Motor
+    ctx.fillStyle = '#333';
+    ctx.fillRect(10, -1.2, 3.5, 2.4);
+    // Hélice
+    if (plane.throttle > 0.05) {
+        ctx.fillStyle = '#666';
+        ctx.beginPath();
+        ctx.ellipse(13.5, 0, 1.8, 5, 0, 0, Math.PI*2);
+        ctx.fill();
+    }
+    // Cola
+    ctx.fillStyle = '#A01830';
+    ctx.fillRect(-18, -4.5, 6, 9);
+    // Ruedas
+    ctx.fillStyle = '#222';
+    ctx.fillRect(-7, 2.5, 3.5, 1.8);
+    ctx.fillRect(4, 2.5, 3.5, 1.8);
+
+    ctx.restore();
+    ctx.restore();
+}
+
+// ---------- LOOP ----------
+function loop() {
+    update();
+    draw();
+    requestAnimationFrame(loop);
+}
+
+// Prevenir scroll
+document.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
+
+loop();
+
+// Aviso de inicio
+console.log('✅ Air Tractor corregido - Toca los botones para volar');
+</script>
 </body>
 </html>
