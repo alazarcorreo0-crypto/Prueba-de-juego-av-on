@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulación de Despacho - Mejorada</title>
+    <title>Simulación de Despacho - Pantalla Escritorio</title>
     <style>
         /* --- ESTILOS GENERALES --- */
         * {
@@ -12,53 +12,74 @@
         }
 
         body {
-            background-color: #f0f2f5;
+            background-color: #f4f5f7;
             margin: 0;
-            padding: 10px;
+            padding: 20px;
             display: flex;
             justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
         }
 
+        /* --- CONTENEDOR PRINCIPAL (SIMULA LA VENTANA) --- */
         .app-container {
             width: 100%;
-            max-width: 800px;
+            max-width: 1100px; /* Ancho para pantalla de PC */
             background-color: #ffffff;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             overflow: hidden;
             position: relative;
         }
 
-        /* --- BARRA SUPERIOR --- */
+        /* --- BARRA SUPERIOR (Filtros y búsqueda) --- */
         .top-bar {
             background-color: #ffffff;
-            padding: 10px 15px;
+            padding: 12px 20px;
             display: flex;
             align-items: center;
-            gap: 10px;
-            border-bottom: 1px solid #ddd;
-            font-size: 12px;
-            color: #666;
+            gap: 15px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 132px;
+            color: #4b5563;
+       s }
+
+        .search-container {
+            flex-grow ease;
+           : box 1;
+            display: flex;
+            align-items: center;
+            background-color: #f9fafb;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            padding: 0 10px;
+            height: 36px;
+        }
+
+        .search-container span {
+            margin-right: 8px;
+            color: #9ca3af;
         }
 
         .search-input {
             flex-grow: 1;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            border: none;
+            background: transparent;
             font-size: 13px;
             outline: none;
+            height: 100%;
         }
 
         .btn-approve {
-            background-color: #28a745;
+            background-color: #10b981;
             color: white;
             border: none;
-            padding: 8px 15px;
-            border-radius: 3px;
+            padding: 8px 16px;
+            border-radius: 4px;
             font-weight: bold;
             cursor: pointer;
+            font-size: 13px;
             white-space: nowrap;
         }
 
@@ -66,71 +87,71 @@
         .truck-list {
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            padding: 10px;
-            background-color: #e9ecef;
+            gap: 12px;
+            padding: 15px;
+            background-color: #e5e7eb; /* Fondo gris claro detrás de las tarjetas */
             height: 80vh;
             overflow-y: auto;
         }
 
-        /* --- TARJETA INDIVIDUAL --- */
+        /* --- TARJETA INDIVIDUAL (Layout horizontal) --- */
         .truck-card {
             display: flex;
             background-color: #ffffff;
-            border: 1px solid #ccc;
+            border: 1px solid #d1d5db;
             border-radius: 4px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
             overflow: hidden;
-            flex-wrap: wrap; 
+            position: relative;
         }
 
         /* --- PANEL IZQUIERDO (AZUL OSCURO) --- */
         .left-panel {
-            width: 120px;
-            background-color: #1a2b3c; /* Azul más oscuro */
+            width: 140px;
+            background-color: #1e293b; /* Azul oscuro exacto */
             color: white;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 15px 5px;
+            padding: 20px 10px;
             text-align: center;
-            border-right: 1px solid #0d151c;
+            border-right: 1px solid #0f172a;
             flex-shrink: 0;
         }
 
         .ticket-number {
-            font-size: 16px;
+            font-size: 18px;
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
         }
 
         .truck-id {
-            font-size: 22px;
+            font-size: 24px;
             font-weight: 900;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
         }
 
         .loads-label {
             font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 1px;
-            opacity: 0.8;
+            opacity: 0.7;
+            margin-bottom: 2px;
         }
 
         .loads-value {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: bold;
         }
 
         /* --- PANEL DERECHO (DATOS) --- */
         .right-panel {
             flex-grow: 1;
-            padding: 15px;
+            padding: 15px 20px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            min-width: 300px;
+            gap: 15px;
         }
 
         /* --- CABECERA DE LA TARJETA --- */
@@ -138,23 +159,25 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 8px;
             font-size: 12px;
-            color: #333;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 8px;
+            color: #374151;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f3f4f6;
         }
 
         .date-time {
             font-weight: 500;
-            width: 100%;
-            margin-bottom: 5px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .badge-potatoes {
-            background-color: #f0ad4e;
-            color: #fff;
+            background-color: #f59e0b; /* Naranja de la imagen */
+            color: #ffffff;
             padding: 3px 10px;
             border-radius: 12px;
             font-size: 11px;
@@ -162,37 +185,32 @@
             white-space: nowrap;
         }
 
-        .action-icons {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-
         /* --- BOTÓN ÚNICO (SAVE + IMPRESORA) --- */
         .btn-save-print {
-            background-color: #007bff;
+            background-color: #3b82f6; /* Azul del botón Save */
             color: white;
             border: none;
-            padding: 6px 12px;
-            border-radius: 3px;
-            font-weight: bold;
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-weight: 600;
             cursor: pointer;
             font-size: 12px;
             display: flex;
             align-items: center;
             gap: 5px;
             white-space: nowrap;
+            transition: background-color 0.2s;
         }
 
         .btn-save-print:hover {
-            background-color: #0056b3;
+            background-color: #2563eb;
         }
 
-        /* --- CUERPO DE DATOS (TABLA DE PESOS) --- */
+        /* --- CUERPO DE DATOS (Rejilla exacta) --- */
         .data-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            gap: 15px 40px; /* Espacio entre columnas */
             font-size: 13px;
         }
 
@@ -202,103 +220,91 @@
         }
 
         .data-field label {
-            font-size: 11px;
-            color: #666;
+            font-size: 12px;
+            color: #6b7280;
             margin-bottom: 4px;
+            font-weight: 500;
         }
 
         .data-field input {
-            border: 1px solid #ccc;
-            border-radius: 3px;
-            padding: 8px;
+            border: none;
+            border-bottom: 1px solid #d1d5db; /* Solo línea inferior como en la foto */
+            padding: 6px 0;
             font-size: 14px;
             width: 100%;
             outline: none;
+            background-color: transparent;
+            color: #111827;
+            font-weight: 500;
         }
 
         .data-field input:focus {
-            border-color: #007bff;
+            border-bottom-color: #3b82f6;
         }
 
         .data-field input[readonly] {
-            background-color: #f9f9f9;
-            color: #333;
+            color: #374151;
+            cursor: default;
         }
 
-        .weight-input {
-            font-weight: bold;
-            font-size: 16px !important;
+        /* El campo de Light Weight abarca ambas columnas */
+        .data-field.full-width {
+            grid-column: span 2;
         }
 
-        /* --- CIRCULITO DE SELECCIÓN --- */
+        .weight-value {
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        /* --- CIRCULITO DE SELECCIÓN (A la derecha de la tarjeta) --- */
         .radio-circle {
-            width: 24px;
-            height: 24px;
-            border: 2px solid #b0b0b0;
+            width: 22px;
+            height: 22px;
+            border: 2px solid #9ca3af;
             border-radius: 50%;
-            background-color: #fff;
+            background-color: #ffffff;
             cursor: pointer;
             position: absolute;
-            right: 20px;
-            top: 20px;
-            transition: all 0.2s ease;
-            box-shadow: 0 0 3px rgba(0,0,0,0.2);
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            transition: all 0.-shadow: 0 0 0 2px #ffffff; /* Borde blanco para que resalte */
             z-index: 10;
         }
 
         .radio-circle.selected {
-            border-color: #007bff;
-            background-color: #007bff;
-            box-shadow: inset 0 0 0 3px #fff, 0 0 5px rgba(0,123,255,0.5);
+            border-color: #3b82f6;
+            background-color: #3b82f6;
+            box-shadow: inset 0 0 0 3px #ffffff, 0 0 5px rgba(59, 130, 246, 0.5);
         }
 
-        .card-wrapper {
-            position: relative;
-        }
-
-        /* --- MENSAJE DE ALERTA --- */
+        /* --- MENSAJE DE ALERTA (Debajo de los datos) --- */
         .alert-message {
             display: none;
-            background-color: #f8d7da;
-            color: #721c24;
-            padding: 8px;
-            border-radius: 3px;
+            background-color: #fee2e2;
+            color: #991b1b;
+            padding: 8px 12px;
+            border-radius: 4px;
             font-size: 12px;
-            margin-top: 5px;
-            border: 1px solid #f5c6cb;
+            border: 1px solid #fecaca;
             width: 100%;
+            margin-top: 5px;
         }
 
-        /* --- MEDIA QUERIES PARA MÓVILES --- */
-        @media (max-width: 600px) {
-            .left-panel {
-                width: 90px;
-                padding: 10px 2px;
-            }
-            .ticket-number { font-size: 14px; }
-            .truck-id { font-size: 18px; }
-            .loads-value { font-size: 16px; }
-
-            .data-grid {
-                grid-template-columns: 1fr;
-                gap: 10px;
-            }
-
-            .card-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .action-icons {
-                width: 100%;
-                justify-content: flex-end;
-                margin-top: 5px;
-            }
-
-            .radio-circle {
-                top: 15px;
-                right: 15px;
-            }
+        /* --- SCROLLBAR ESTILIZADA --- */
+        .truck-list::-webkit-scrollbar {
+            width: 8px;
+        }
+        .truck-list::-webkit-scrollbar-track {
+            background: #e5e7eb;
+        }
+        .truck-list::-webkit-scrollbar-thumb {
+            background: #9ca3af;
+            border-radius: 4px;
+        }
+        .truck-list::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
         }
     </style>
 </head>
@@ -307,86 +313,94 @@
 <div class="app-container">
     <!-- Barra superior -->
     <div class="top-bar">
-        <span style="font-size: 16px;">🔍</span>
-        <input type="text" class="search-input" placeholder="Search for Crew, EG, Crop, Ticket Number">
+        <div class="search-container">
+            <span>🔍</span>
+            <input type="text" class="search-input" placeholder="Search for Crew, EG, Crop, Ticket Number">
+        </div>
         <button class="btn-approve">Approve</button>
     </div>
 
     <!-- Lista de Camiones -->
     <div class="truck-list" id="truckList">
-        <!-- Se genera con JS -->
+        <!-- Se genera con JavaScript -->
     </div>
 </div>
 
 <script>
-    // 1. DATOS REALES
+    // 1. DATOS REALES (Actualizados con la nueva foto)
     const trucksData = [
-        { ticket: "3942", truckId: "R-02", loads: 1, date: "19 Sep 2026 10:54:50 AM - 11:08:36 AM", implement: "GS Digger 20", field: "0032", netWeight: 0, loadConfirmation: 0, lightWeight: 23700 },
-        { ticket: "4018", truckId: "R-32", loads: 1, date: "19 Sep 2026 01:14:30 PM - 01:16:19 PM", implement: "GS Digger 24", field: "0082", netWeight: 0, loadConfirmation: 0, lightWeight: 20420 },
-        { ticket: "4021", truckId: "R-12", loads: 1, date: "19 Sep 2026 01:03:47 PM - 01:18:39 PM", implement: "GS Digger 15", field: "0032", netWeight: 21840, loadConfirmation: 21840, lightWeight: 21840 },
-        { ticket: "4023", truckId: "R-04", loads: 1, date: "19 Sep 2026 01:05:43 PM - 01:19:20 PM", implement: "GS Digger 14", field: "0032", netWeight: 0, loadConfirmation: 0, lightWeight: 0 }
+        { ticket: "3942", truckId: "R-02", loads: 1, date: "19 Sep 2026 10:54:50 AM-11:08:36 AM", implement: "GS Digger 20", field: "0032", netWeight: 0, loadConfirmation: 0, lightWeight: 23700 },
+        { ticket: "4026", truckId: "R-13", loads: 1, date: "19 Sep 2026 01:14:41 PM-01:28:50 PM", implement: "GS Digger 17", field: "0032", netWeight: 0, loadConfirmation: 0, lightWeight: 22260 },
+        { ticket: "4031", truckId: "R-07", loads: 1, date: "19 Sep 2026 01:18:44 PM-01:33:51 PM", implement: "GS Digger 15", field: "0032", netWeight: 0, loadConfirmation: 0, lightWeight: 21940 },
+        { ticket: "4032", truckId: "R-11", loads: 1, date: "19 Sep 2026 01:19:39 PM-01:34:05 PM", implement: "GS Digger 14", field: "0032", netWeight: 0, loadConfirmation: 0, lightWeight: 0 }
     ];
 
     const truckListContainer = document.getElementById('truckList');
 
-    // 2. FUNCIÓN PARA CREAR LAS TARJETAS
+    // 2. FUNCIÓN PARA RENDERIZAR LAS TARJETAS
     function renderTrucks() {
         truckListContainer.innerHTML = '';
 
         trucksData.forEach((truck, index) => {
             const cardWrapper = document.createElement('div');
-            cardWrapper.className = 'card-wrapper';
+            cardWrapper.className = 'truck-card';
 
-            // Usamos template literals pero aseguramos que no haya errores de sintaxis
-            const cardHTML = `
-                <div class="truck-card">
-                    <div class="left-panel">
-                        <div class="ticket-number">${truck.ticket}</div>
-                        <div class="truck-id">${truck.truckId}</div>
-                        <div class="loads-label">LOADS</div>
-                        <div class="loads-value">${truck.loads}</div>
-                    </div>
-
-                    <div class="right-panel">
-                        <div class="card-header">
-                            <span class="date-time">${truck.date}</span>
-                            <span class="badge-potatoes">Potatoes</span>
-                            <div class="action-icons">
-                                <button class="btn-save-print" data-index="${index}">
-                                    🖨️ Save
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="data-grid">
-                            <div class="data-field">
-                                <label>Implement</label>
-                                <input type="text" value="${truck.implement}" readonly>
-                            </div>
-                            <div class="data-field">
-                                <label>Field</label>
-                                <input type="text" value="${truck.field}" readonly>
-                            </div>
-                            <div class="data-field">
-                                <label>Net Weight (lbs)</label>
-                                <input type="number" class="weight-input" value="${truck.netWeight}" data-field="netWeight" data-index="${index}">
-                            </div>
-                            <div class="data-field">
-                                <label>Load Confirmation (lbs)*</label>
-                                <input type="number" class="weight-input" value="${truck.loadConfirmation}" data-field="loadConfirmation" data-index="${index}">
-                            </div>
-                            <div class="data-field">
-                                <label>Light Weight (lbs)</label>
-                                <input type="text" value="${truck.lightWeight}" readonly>
-                            </div>
-                        </div>
-                        <div class="alert-message" id="alert-${index}">⚠️ Error: El peso neto o confirmado debe ser mayor a 50 lbs para imprimir.</div>
-                    </div>
+            // HTML interno de la tarjeta
+            cardWrapper.innerHTML = `
+                <!-- Panel Izquierdo Azul Oscuro -->
+                <div class="left-panel">
+                    <div class="ticket-number">${truck.ticket}</div>
+                    <div class="truck-id">${truck.truckId}</div>
+                    <div class="loads-label">LOADS</div>
+                    <div class="loads-value">${truck.loads}</div>
                 </div>
+
+                <!-- Panel Derecho de Datos -->
+                <div class="right-panel">
+                    <!-- Cabecera -->
+                    <div class="card-header">
+                        <span class="date-time">${truck.date}</span>
+                        <div class="header-right">
+                            <span class="badge-potatoes">Potatoes</span>
+                            <!-- BOTÓN ÚNICO: Save + Impresora -->
+                            <button class="btn-save-print" data-index="${index}">
+                                🖨️ Save
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Cuerpo de datos (Rejilla) -->
+                    <div class="data-grid">
+                        <div class="data-field">
+                            <label>Implement</label>
+                            <input type="text" value="${truck.implement}" readonly>
+                        </div>
+                        <div class="data-field">
+                            <label>Field</label>
+                            <input type="text" value="${truck.field}" readonly>
+                        </div>
+                        <div class="data-field">
+                            <label>Net Weight (lbs)</label>
+                            <input type="number" class="weight-value" value="${truck.netWeight}" data-field="netWeight" data-index="${index}">
+                        </div>
+                        <div class="data-field">
+                            <label>Load Confirmation (lbs)*</label>
+                            <input type="number" class="weight-value" value="${truck.loadConfirmation}" data-field="loadConfirmation" data-index="${index}">
+                        </div>
+                        <div class="data-field full-width">
+                            <label>Light Weight (lbs)</label>
+                            <input type="text" value="${truck.lightWeight}" readonly>
+                        </div>
+                    </div>
+
+                    <!-- Alerta de error -->
+                    <div class="alert-message" id="alert-${index}">⚠️ Error: El peso neto o confirmado debe ser mayor a 50 lbs para imprimir.</div>
+                </div>
+
+                <!-- Círculo de selección a la derecha -->
                 <div class="radio-circle" data-index="${index}"></div>
             `;
 
-            cardWrapper.innerHTML = cardHTML;
             truckListContainer.appendChild(cardWrapper);
         });
 
@@ -406,15 +420,17 @@
                 if (this.classList.contains('selected')) {
                     this.classList.remove('selected');
                     selectedIndex = null;
+                    console.log("Deseleccionado");
                 } else {
                     document.querySelectorAll('.radio-circle').forEach(c => c.classList.remove('selected'));
                     this.classList.add('selected');
                     selectedIndex = index;
+                    console.log("Seleccionado ticket:", trucksData[index].ticket);
                 }
             });
         });
 
-        // Evento para el BOTÓN ÚNICO
+        // Evento para el BOTÓN ÚNICO (Save + Imprimir)
         document.querySelectorAll('.btn-save-print').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -437,12 +453,12 @@
         // --- REGLA: Si es 0 o menor a 50, no imprimir ---
         if (netWeight < 50 || loadConf < 50) {
             alertBox.style.display = 'block';
-            netWeightInput.style.borderColor = 'red';
-            loadConfInput.style.borderColor = 'red';
+            netWeightInput.style.borderBottomColor = '#ef4444';
+            loadConfInput.style.borderBottomColor = '#ef4444';
             
             setTimeout(() => {
-                netWeightInput.style.borderColor = '#ccc';
-                loadConfInput.style.borderColor = '#ccc';
+                netWeightInput.style.borderBottomColor = '#d1d5db';
+                loadConfInput.style.borderBottomColor = '#d1d5db';
             }, 1500);
 
             setTimeout(() => {
@@ -457,15 +473,15 @@
         if (btnElement) {
             const originalText = btnElement.innerHTML;
             btnElement.innerHTML = '⏳ Imprimiendo...';
-            btnElement.style.backgroundColor = '#6c757d';
+            btnElement.style.backgroundColor = '#6b7280';
             
             setTimeout(() => {
                 btnElement.innerHTML = '✔ Impreso';
-                btnElement.style.backgroundColor = '#28a745';
+                btnElement.style.backgroundColor = '#10b981';
                 
                 setTimeout(() => {
                     btnElement.innerHTML = originalText;
-                    btnElement.style.backgroundColor = '#007bff';
+                    btnElement.style.backgroundColor = '#3b82f6';
                 }, 2000);
             }, 800);
         }
@@ -473,7 +489,7 @@
         console.log(`✅ Imprimiendo ticket ${truck.ticket} - Net: ${netWeight}, Load: ${loadConf}`);
     }
 
-    // Iniciar todo
+    // Iniciar la aplicación
     renderTrucks();
 </script>
 
