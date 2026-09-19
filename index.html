@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulación Despacho - Mejorada</title>
+    <title>Simulación Despacho - Demostración</title>
     <style>
         /* --- RESET Y FUENTES --- */
         * {
@@ -386,11 +386,15 @@
 </div>
 
 <script>
-    // 1. DATOS EXACTOS
+    // 1. DATOS DE PRUEBA (Para demostración)
     const trucksData = [
-        { ticket: "3910", truckId: "R-20", loads: 1, date: "19 Sep", year: "2026", timeStart: "09:47:23 AM", timeEnd: "10:15:28 AM", implement: "GS Digger 24", field: "0083", offload: "N/A", storage: "N/A", netWeight: 35420, grossWeight: 57600, lightWeight: 22180 },
-        { ticket: "3907", truckId: "R-19", loads: 1, date: "19 Sep", year: "2026", timeStart: "09:37:43 AM", timeEnd: "10:09:31 AM", implement: "GS Digger 19", field: "0083", offload: "N/A", storage: "N/A", netWeight: 35840, grossWeight: 57460, lightWeight: 21620 },
-        { ticket: "3906", truckId: "R-13", loads: 1, date: "19 Sep", year: "2026", timeStart: "09:47:56 AM", timeEnd: "10:09:20 AM", implement: "GS Digger 14", field: "0032", offload: "N/A", storage: "N/A", netWeight: 35200, grossWeight: 57460, lightWeight: 22260 },
+        // Este camión tiene peso 0, no debe imprimir
+        { ticket: "3910", truckId: "R-20", loads: 1, date: "19 Sep", year: "2026", timeStart: "09:47:23 AM", timeEnd: "10:15:28 AM", implement: "GS Digger 24", field: "0083", offload: "N/A", storage: "N/A", netWeight: 0, grossWeight: 57600, lightWeight: 22180 },
+        // Este camión tiene peso 0, no debe imprimir
+        { ticket: "3907", truckId: "R-19", loads: 1, date: "19 Sep", year: "2026", timeStart: "09:37:43 AM", timeEnd: "10:09:31 AM", implement: "GS Digger 19", field: "0083", offload: "N/A", storage: "N/A", netWeight: 0, grossWeight: 57460, lightWeight: 21620 },
+        // Este camión tiene peso 50 (mínimo válido), SÍ debe imprimir
+        { ticket: "3906", truckId: "R-13", loads: 1, date: "19 Sep", year: "2026", timeStart: "09:47:56 AM", timeEnd: "10:09:20 AM", implement: "GS Digger 14", field: "0032", offload: "N/A", storage: "N/A", netWeight: 50, grossWeight: 57460, lightWeight: 22260 },
+        // Este camión tiene peso real, SÍ debe imprimir
         { ticket: "3905", truckId: "106", loads: 1, date: "19 Sep", year: "2026", timeStart: "09:50:27 AM", timeEnd: "10:07:31 AM", implement: "GS Digger 17", field: "0032", offload: "N/A", storage: "N/A", netWeight: 34900, grossWeight: 57960, lightWeight: 23060 }
     ];
 
@@ -457,7 +461,7 @@
                             <label>Storage</label>
                             <input type="text" value="${truck.storage}" readonly>
                         </div>
-                        <!-- Net Weight y Gross Weight son totalmente editables -->
+                        <!-- Net Weight y Gross Weight son editables -->
                         <div class="data-field">
                             <label>Net Weight (lbs)</label>
                             <input type="number" class="editable-weight" value="${truck.netWeight}" data-field="netWeight" data-index="${index}">
@@ -512,7 +516,7 @@
 
                 // --- REGLA 1: Si NO hay nada seleccionado, no hace NADA ---
                 if (selectedIndex === null) {
-                    return; // Simplemente no hace nada, sin mensajes
+                    return; 
                 }
 
                 // --- REGLA 2: Si el botón presionado NO es el seleccionado, no hace NADA ---
