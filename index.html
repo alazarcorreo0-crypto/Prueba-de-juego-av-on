@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulación Despacho - Exacto</title>
+    <title>Simulación Despacho - Mejorada</title>
     <style>
         /* --- RESET Y FUENTES --- */
         * {
@@ -19,26 +19,55 @@
             justify-content: center;
         }
 
-        /* --- CONTENEDOR PRINCIPAL (MÁS ANGOSTO) --- */
+        /* --- CONTENEDOR PRINCIPAL --- */
         .app-container {
             width: 100%;
-            max-width: 950px; /* Reducido para que no se vea tan abierto */
+            max-width: 1000px; /* Un poco más ancho para la pestaña de historial */
             background-color: #ffffff;
             border: 1px solid #ccc;
             border-radius: 4px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
-        /* --- BARRA SUPERIOR --- */
+        /* --- BARRA SUPERIOR CON PESTAÑAS --- */
         .top-bar {
             background-color: #ffffff;
-            padding: 10px 15px;
+            padding: 8px 15px;
             display: flex;
             align-items: center;
-            gap: 15px;
+            justify-content: space-between;
             border-bottom: 1px solid #ddd;
             font-size: 13px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 5px;
+        }
+
+        .tab-btn {
+            background-color: #f1f3f5;
+            color: #495057;
+            border: 1px solid #ced4da;
+            padding: 6px 15px;
+            border-radius: 4px 4px 0 0;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        .tab-btn:hover:not(.active) {
+            background-color: #e2e6ea;
         }
 
         .search-container {
@@ -49,13 +78,14 @@
             border: 1px solid #ccc;
             border-radius: 4px;
             padding: 0 10px;
-            height: 34px;
+            height: 32px;
+            margin: 0 15px;
         }
 
         .search-container span {
             margin-right: 8px;
             color: #999;
-            font-size: 16px;
+            font-size: 14px;
         }
 
         .search-input {
@@ -71,22 +101,28 @@
             background-color: #1a9c6e;
             color: white;
             border: none;
-            padding: 8px 16px;
+            padding: 6px 14px;
             border-radius: 4px;
             font-weight: bold;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 12px;
+            white-space: nowrap;
         }
 
-        /* --- LISTA DE CAMIONES --- */
-        .truck-list {
+        /* --- ÁREA DE CONTENIDO (Lista de camiones) --- */
+        .content-area {
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            padding: 10px;
-            background-color: #e9ecef;
-            height: 85vh;
+            height: 80vh;
             overflow-y: auto;
+            background-color: #e9ecef;
+            padding: 10px;
+            gap: 8px;
+        }
+
+        /* --- OCULTAR HISTORIAL INICIALMENTE --- */
+        .history-view {
+            display: none;
         }
 
         /* --- TARJETA INDIVIDUAL --- */
@@ -101,7 +137,7 @@
 
         /* --- PANEL IZQUIERDO (AZUL OSCURO) --- */
         .left-panel {
-            width: 120px;
+            width: 130px;
             background-color: #1a2b3c;
             color: white;
             display: flex;
@@ -118,10 +154,11 @@
             margin-bottom: 2px;
         }
 
+        /* --- CAMBIO: TROQUE ID MÁS GRANDE --- */
         .truck-id {
-            font-size: 24px;
+            font-size: 32px; /* Aumentado de 24px a 32px */
             font-weight: 900;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .loads-label {
@@ -144,7 +181,7 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
-            padding-right: 50px; /* Espacio para el círculo de selección */
+            padding-right: 50px;
         }
 
         /* --- CABECERA DE LA TARJETA --- */
@@ -196,14 +233,14 @@
 
         /* --- BOTÓN ÚNICO: SAVE + IMPRESORA --- */
         .btn-save-print {
-            background-color: #3b82f6; /* Azul del botón Save */
+            background-color: #3b82f6;
             color: white;
             border: none;
             padding: 6px 12px;
             border-radius: 4px;
             font-weight: 600;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 13px;
             display: flex;
             align-items: center;
             gap: 5px;
@@ -213,6 +250,11 @@
 
         .btn-save-print:hover {
             background-color: #2563eb;
+        }
+
+        /* --- CAMBIO: ICONO DE IMPRESORA MÁS GRANDE --- */
+        .btn-save-print .icon {
+            font-size: 18px; /* Aumentado de 14px a 18px */
         }
 
         /* --- CUERPO DE DATOS (3 COLUMNAS) --- */
@@ -235,16 +277,30 @@
             font-weight: 400;
         }
 
-        .data-field .value {
+        /* --- CAMBIO: INPUTS EDITABLES --- */
+        .data-field input {
             font-size: 14px;
             font-weight: 600;
             color: #111;
+            border: none;
             border-bottom: 1px solid #eee;
             padding-bottom: 4px;
             min-height: 24px;
+            outline: none;
+            background: transparent;
+            width: 100%;
         }
 
-        /* --- CIRCULITO DE SELECCIÓN (A la derecha) --- */
+        .data-field input:focus {
+            border-bottom: 1px solid #3b82f6;
+        }
+
+        .data-field input[readonly] {
+            color: #333;
+            cursor: default;
+        }
+
+        /* --- CIRCULITO DE SELECCIÓN --- */
         .radio-circle {
             width: 22px;
             height: 22px;
@@ -281,23 +337,47 @@
         }
 
         /* --- SCROLLBAR --- */
-        .truck-list::-webkit-scrollbar {
+        .content-area::-webkit-scrollbar {
             width: 8px;
         }
-        .truck-list::-webkit-scrollbar-track {
+        .content-area::-webkit-scrollbar-track {
             background: #e9ecef;
         }
-        .truck-list::-webkit-scrollbar-thumb {
+        .content-area::-webkit-scrollbar-thumb {
             background: #adb5bd;
             border-radius: 4px;
+        }
+
+        /* --- ESTILOS PARA LA VISTA DE HISTORIAL --- */
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .history-item {
+            background: #fff;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            color: #333;
+        }
+        .history-item strong {
+            color: #1a2b3c;
         }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <!-- Barra superior -->
+    <!-- Barra superior con Pestañas -->
     <div class="top-bar">
+        <div class="tabs">
+            <button class="tab-btn active" id="tabQueue">Queue</button>
+            <button class="tab-btn" id="tabHistory">History</button>
+        </div>
         <div class="search-container">
             <span>🔍</span>
             <input type="text" class="search-input" placeholder="Search for Crew, EG, Crop, Ticket Number">
@@ -305,9 +385,18 @@
         <button class="btn-approve">Approve</button>
     </div>
 
-    <!-- Lista de Camiones -->
-    <div class="truck-list" id="truckList">
-        <!-- Se genera con JavaScript -->
+    <!-- Contenedor Principal (Queue) -->
+    <div class="content-area" id="queueView">
+        <!-- Lista de Camiones -->
+        <div id="truckList"></div>
+    </div>
+
+    <!-- Contenedor de Historial (Oculto inicialmente) -->
+    <div class="content-area history-view" id="historyView">
+        <div class="history-list" id="historyList">
+            <!-- Se llena dinámicamente -->
+            <p style="text-align:center; color:#666; margin-top:20px;">No hay registros en el historial todavía.</p>
+        </div>
     </div>
 </div>
 
@@ -321,14 +410,20 @@
     ];
 
     const truckListContainer = document.getElementById('truckList');
+    const historyListContainer = document.getElementById('historyList');
+    const tabQueue = document.getElementById('tabQueue');
+    const tabHistory = document.getElementById('tabHistory');
+    const queueView = document.getElementById('queueView');
+    const historyView = document.getElementById('historyView');
 
-    // 2. FUNCIÓN PARA RENDERIZAR
+    // 2. FUNCIÓN PARA RENDERIZAR LAS TARJETAS
     function renderTrucks() {
         truckListContainer.innerHTML = '';
 
         trucksData.forEach((truck, index) => {
             const cardWrapper = document.createElement('div');
             cardWrapper.className = 'truck-card';
+            cardWrapper.dataset.index = index; // Guardamos el índice en el DOM
 
             cardWrapper.innerHTML = `
                 <div class="left-panel">
@@ -353,9 +448,9 @@
                         </div>
                         <div class="header-right">
                             <span class="badge-potatoes">Potatoes</span>
-                            <!-- BOTÓN ÚNICO: SAVE + IMPRESORA -->
+                            <!-- Botón con icono más grande -->
                             <button class="btn-save-print" data-index="${index}">
-                                🖨️ Save
+                                <span class="icon">🖨️</span> Save
                             </button>
                         </div>
                     </div>
@@ -363,39 +458,39 @@
                     <div class="data-grid">
                         <div class="data-field">
                             <label>Implement</label>
-                            <div class="value">${truck.implement}</div>
+                            <input type="text" value="${truck.implement}" readonly>
                         </div>
                         <div class="data-field">
                             <label>Field</label>
-                            <div class="value">${truck.field}</div>
+                            <input type="text" value="${truck.field}" readonly>
                         </div>
                         <div class="data-field">
                             <label>Offload Site</label>
-                            <div class="value">${truck.offload}</div>
+                            <input type="text" value="${truck.offload}" readonly>
                         </div>
                         
                         <div class="data-field">
                             <label>Storage</label>
-                            <div class="value">${truck.storage}</div>
+                            <input type="text" value="${truck.storage}" readonly>
                         </div>
+                        <!-- Net Weight y Gross Weight son editables -->
                         <div class="data-field">
                             <label>Net Weight (lbs)</label>
-                            <div class="value">${truck.netWeight}</div>
+                            <input type="number" class="editable-weight" value="${truck.netWeight}" data-field="netWeight" data-index="${index}">
                         </div>
                         <div class="data-field">
                             <label>Gross Weight (lbs)</label>
-                            <div class="value">${truck.grossWeight}</div>
+                            <input type="number" class="editable-weight" value="${truck.grossWeight}" data-field="grossWeight" data-index="${index}">
                         </div>
 
                         <div class="data-field">
                             <label>Light Weight (lbs)</label>
-                            <div class="value">${truck.lightWeight}</div>
+                            <input type="text" value="${truck.lightWeight}" readonly>
                         </div>
                     </div>
                     <div class="alert-message" id="alert-${index}">⚠️ Error: El peso neto debe ser mayor a 50 lbs para imprimir.</div>
                 </div>
                 
-                <!-- CÍRCULO DE SELECCIÓN A LA DERECHA -->
                 <div class="radio-circle" data-index="${index}"></div>
             `;
 
@@ -405,7 +500,7 @@
         attachEvents();
     }
 
-    // 3. LÓGICA DE SELECCIÓN
+    // 3. LÓGICA DE SELECCIÓN Y VALIDACIÓN
     let selectedIndex = null;
 
     function attachEvents() {
@@ -418,63 +513,134 @@
                 if (this.classList.contains('selected')) {
                     this.classList.remove('selected');
                     selectedIndex = null;
-                    console.log("Deseleccionado");
                 } else {
                     document.querySelectorAll('.radio-circle').forEach(c => c.classList.remove('selected'));
                     this.classList.add('selected');
                     selectedIndex = index;
-                    console.log("Seleccionado ticket:", trucksData[index].ticket);
                 }
             });
         });
 
-        // Evento para el botón único Save + Print
+        // Evento para el botón único (Save + Print)
         document.querySelectorAll('.btn-save-print').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
                 const index = this.dataset.index;
+
+                // --- REGLA: Solo imprimir el que está seleccionado ---
+                if (selectedIndex === null) {
+                    alert("Por favor, seleccione un camión (haga clic en el círculo a la derecha) antes de imprimir.");
+                    return;
+                }
+
+                if (selectedIndex !== index) {
+                    alert("Error: Solo puede imprimir el camión que tiene seleccionado actualmente.");
+                    return;
+                }
+
+                // Si es el correcto, procedemos a imprimir
                 processPrint(index, this);
             });
         });
     }
 
-    // 4. FUNCIÓN DE IMPRESIÓN (Validación y simulación)
+    // 4. FUNCIÓN DE IMPRESIÓN Y ENVÍO A HISTORIAL
     function processPrint(index, btnElement) {
         const truck = trucksData[index];
         const alertBox = document.getElementById(`alert-${index}`);
-        const netWeight = truck.netWeight || 0;
+        
+        // Obtenemos los valores ACTUALES de los inputs (por si el usuario los editó)
+        const netWeightInput = document.querySelector(`input[data-field="netWeight"][data-index="${index}"]`);
+        const grossWeightInput = document.querySelector(`input[data-field="grossWeight"][data-index="${index}"]`);
+        
+        const netWeight = parseFloat(netWeightInput.value) || 0;
+        const grossWeight = parseFloat(grossWeightInput.value) || 0;
 
         // Validación: Si el Net Weight es menor a 50, no imprime
         if (netWeight < 50) {
             alertBox.style.display = 'block';
+            netWeightInput.style.borderBottom = '2px solid red';
+            
             setTimeout(() => {
                 alertBox.style.display = 'none';
+                netWeightInput.style.borderBottom = '1px solid #eee';
             }, 3000);
             return;
         }
 
+        // Limpiamos alertas previas
         alertBox.style.display = 'none';
 
         // Simular impresión directa
         if (btnElement) {
-            const originalText = btnElement.innerHTML;
-            btnElement.innerHTML = '⏳ Imprimiendo...';
+            const originalHTML = btnElement.innerHTML;
+            btnElement.innerHTML = '<span class="icon">⏳</span> Imprimiendo...';
             btnElement.style.backgroundColor = '#6b7280';
             
             setTimeout(() => {
-                btnElement.innerHTML = '✔ Impreso';
+                btnElement.innerHTML = '<span class="icon">✔</span> Impreso';
                 btnElement.style.backgroundColor = '#10b981';
                 
                 setTimeout(() => {
-                    btnElement.innerHTML = originalText;
+                    // --- ACCIÓN: Mover a Historial ---
+                    moveToHistory(index, netWeight, grossWeight);
+                    
+                    // Restaurar botón (por si acaso, aunque la tarjeta va a desaparecer)
+                    btnElement.innerHTML = originalHTML;
                     btnElement.style.backgroundColor = '#3b82f6';
-                }, 2000);
+                }, 1000);
             }, 800);
         }
-
-        console.log(`✅ Imprimiendo ticket ${truck.ticket} - Net Weight: ${netWeight}`);
     }
 
+    // 5. FUNCIÓN PARA MOVER A HISTORIAL
+    function moveToHistory(index, netWeight, grossWeight) {
+        const truck = trucksData[index];
+        
+        // 1. Crear el elemento en el historial
+        const historyItem = document.createElement('div');
+        historyItem.className = 'history-item';
+        historyItem.innerHTML = `
+            <span><strong>Ticket:</strong> ${truck.ticket} | <strong>Troque:</strong> ${truck.truckId}</span>
+            <span><strong>Net:</strong> ${netWeight} lbs | <strong>Gross:</strong> ${grossWeight} lbs</span>
+            <span style="color: #10b981; font-weight: bold;">✔ Impreso</span>
+        `;
+        
+        // Si el historial tiene el mensaje de "No hay registros", lo eliminamos
+        if (historyListContainer.querySelector('p')) {
+            historyListContainer.innerHTML = '';
+        }
+        
+        historyListContainer.appendChild(historyItem);
+
+        // 2. Eliminar la tarjeta de la vista de Queue (simulando que ya se procesó)
+        const cardToRemove = document.querySelector(`.truck-card[data-index="${index}"]`);
+        if (cardToRemove) {
+            cardToRemove.remove();
+        }
+
+        // 3. Limpiar la selección
+        selectedIndex = null;
+        
+        console.log(`✅ Ticket ${truck.ticket} movido a Historial.`);
+    }
+
+    // 6. LÓGICA DE PESTAÑAS (TABS)
+    tabQueue.addEventListener('click', () => {
+        tabQueue.classList.add('active');
+        tabHistory.classList.remove('active');
+        queueView.style.display = 'flex';
+        historyView.style.display = 'none';
+    });
+
+    tabHistory.addEventListener('click', () => {
+        tabHistory.classList.add('active');
+        tabQueue.classList.remove('active');
+        queueView.style.display = 'none';
+        historyView.style.display = 'flex';
+    });
+
+    // Iniciar
     renderTrucks();
 </script>
 
