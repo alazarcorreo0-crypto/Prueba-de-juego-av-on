@@ -2,533 +2,485 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Air Tractor - Fijo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación de Despacho - Mejorada</title>
     <style>
+        /* --- ESTILOS GENERALES --- */
         * {
-            margin: 0;
-            padding: 0;
             box-sizing: border-box;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            user-select: none;
+            font-family: 'Segoe UI', Arial, sans-serif;
         }
+
         body {
-            overflow: hidden;
-            font-family: Arial, sans-serif;
-            background: #1a2a3a;
-            touch-action: none;
-            position: fixed;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .app-container {
             width: 100%;
-            height: 100%;
+            max-width: 800px;
+            background-color: #ffffff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            overflow: hidden;
+            position: relative;
         }
-        #gameCanvas {
-            display: block;
-            width: 100vw;
-            height: 100vh;
-            touch-action: none;
+
+        /* --- BARRA SUPERIOR --- */
+        .top-bar {
+            background-color: #ffffff;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid #ddd;
+            font-size: 12px;
+            color: #666;
         }
-        #hud {
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            color: #fff;
+
+        .search-input {
+            flex-grow: 1;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
             font-size: 13px;
-            background: rgba(0,0,0,0.8);
-            padding: 12px 16px;
-            border-radius: 10px;
-            pointer-events: none;
-            z-index: 10;
-            border: 1px solid rgba(255,255,255,0.2);
-            backdrop-filter: blur(4px);
-            min-width: 140px;
+            outline: none;
         }
-        .hud-value { color: #FFD700; font-weight: bold; }
-        .warning {
-            color: #ff4444;
+
+        .btn-approve {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 3px;
             font-weight: bold;
-            animation: blink 0.5s infinite;
-        }
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.2; }
-        }
-        #touch-controls {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 130px;
-            z-index: 20;
-            pointer-events: none;
-        }
-        .control-btn {
-            position: absolute;
-            width: 62px;
-            height: 62px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.2);
-            border: 2px solid rgba(255,255,255,0.6);
-            color: #fff;
-            font-size: 26px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            pointer-events: auto;
-            touch-action: none;
-            backdrop-filter: blur(5px);
-            transition: 0.05s;
-            font-weight: bold;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-        }
-        .control-btn:active, .control-btn.active {
-            background: rgba(255,255,255,0.5);
-            transform: scale(0.88);
-            border-color: #fff;
-        }
-        #btn-up { left: 50%; transform: translateX(-50%); bottom: 68px; }
-        #btn-down { left: 50%; transform: translateX(-50%); bottom: 4px; }
-        #btn-left { left: calc(50% - 70px); bottom: 36px; }
-        #btn-right { left: calc(50% + 70px); bottom: 36px; }
-        #btn-throttle { right: 16px; bottom: 68px; background: rgba(255,80,80,0.4); border-color: rgba(255,80,80,0.7); font-size: 22px; }
-        #btn-brake { right: 16px; bottom: 4px; background: rgba(80,80,255,0.4); border-color: rgba(80,80,255,0.7); font-size: 22px; }
-        #btn-takeoff { left: 16px; bottom: 68px; background: rgba(80,255,80,0.3); border-color: rgba(80,255,80,0.6); font-size: 13px; }
-        #btn-land { left: 16px; bottom: 4px; background: rgba(255,255,80,0.3); border-color: rgba(255,255,80,0.6); font-size: 13px; }
-        #btn-reset {
-            position: fixed;
-            top: 12px;
-            right: 12px;
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: rgba(255,50,50,0.6);
-            border: 2px solid rgba(255,50,50,0.8);
-            color: #fff;
-            font-size: 22px;
-            pointer-events: auto;
-            z-index: 30;
-            touch-action: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        #btn-reset:active { transform: scale(0.85); }
-        #controls-info {
-            position: fixed;
-            bottom: 138px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #ddd;
-            background: rgba(0,0,0,0.6);
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 11px;
-            pointer-events: none;
-            z-index: 10;
-            backdrop-filter: blur(4px);
+            cursor: pointer;
             white-space: nowrap;
         }
-        @media (max-width: 480px) {
-            .control-btn { width: 52px; height: 52px; font-size: 20px; }
-            #btn-up { bottom: 60px; }
-            #btn-down { bottom: 4px; }
-            #btn-left { left: calc(50% - 60px); bottom: 32px; }
-            #btn-right { left: calc(50% + 60px); bottom: 32px; }
-            #btn-throttle { right: 10px; bottom: 60px; }
-            #btn-brake { right: 10px; bottom: 4px; }
-            #btn-takeoff { left: 10px; bottom: 60px; font-size: 11px; }
-            #btn-land { left: 10px; bottom: 4px; font-size: 11px; }
-            #hud { font-size: 11px; padding: 8px 12px; }
+
+        /* --- LISTA DE CAMIONES --- */
+        .truck-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 10px;
+            background-color: #e9ecef;
+            height: 80vh; /* Altura adaptable */
+            overflow-y: auto;
+        }
+
+        /* --- TARJETA INDIVIDUAL --- */
+        .truck-card {
+            display: flex;
+            background-color: #ffffff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+            /* Aseguramos que en pantallas pequeñas no se aplaste */
+            flex-wrap: wrap; 
+        }
+
+        /* --- PANEL IZQUIERDO (AZUL OSCURO) --- */
+        .left-panel {
+            width: 120px;
+            background-color: #1a2b3c; /* Azul más oscuro */
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 15px 5px;
+            text-align: center;
+            border-right: 1px solid #0d151c;
+            flex-shrink: 0;
+        }
+
+        .ticket-number {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .truck-id {
+            font-size: 22px;
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+
+        .loads-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.8;
+        }
+
+        .loads-value {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        /* --- PANEL DERECHO (DATOS) --- */
+        .right-panel {
+            flex-grow: 1;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-width: 300px; /* Asegura que los inputs no se aplasten */
+        }
+
+        /* --- CABECERA DE LA TARJETA --- */
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap; /* Permite que los elementos bajen si no caben */
+            gap: 8px;
+            font-size: 12px;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+        }
+
+        .date-time {
+            font-weight: 500;
+            width: 100%; /* En móvil ocupa toda la línea */
+            margin-bottom: 5px;
+        }
+
+        .badge-potatoes {
+            background-color: #f0ad4e;
+            color: #fff;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .action-icons {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        /* --- BOTÓN ÚNICO (SAVE + IMPRESORA) --- */
+        .btn-save-print {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 3px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+
+        .btn-save-print:hover {
+            background-color: #0056b3;
+        }
+
+        /* --- CUERPO DE DATOS (TABLA DE PESOS) --- */
+        .data-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            font-size: 13px;
+        }
+
+        .data-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .data-field label {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .data-field input {
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            padding: 8px;
+            font-size: 14px;
+            width: 100%;
+            outline: none;
+        }
+
+        .data-field input:focus {
+            border-color: #007bff;
+        }
+
+        .data-field input[readonly] {
+            background-color: #f9f9f9;
+            color: #333;
+        }
+
+        .weight-input {
+            font-weight: bold;
+            font-size: 16px !important;
+        }
+
+        /* --- CIRCULITO DE SELECCIÓN --- */
+        .radio-circle {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #b0b0b0;
+            border-radius: 50%;
+            background-color: #fff;
+            cursor: pointer;
+            position: absolute;
+            right: 20px;
+            top: 20px; /* Posicionado arriba a la derecha para no chocar con Save */
+            transition: all 0.2s ease;
+            box-shadow: 0 0 3px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+
+        .radio-circle.selected {
+            border-color: #007bff;
+            background-color: #007bff;
+            box-shadow: inset 0 0 0 3px #fff, 0 0 5px rgba(0,123,255,0.5);
+        }
+
+        .card-wrapper {
+            position: relative;
+        }
+
+        /* --- MENSAJE DE ALERTA --- */
+        .alert-message {
+            display: none;
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-top: 5px;
+            border: 1px solid #f5c6cb;
+            width: 100%;
+        }
+
+        /* --- MEDIA QUERIES PARA MÓVILES --- */
+        @media (max-width: 600px) {
+            .left-panel {
+                width: 90px; /* Más angosto en celular */
+                padding: 10px 2px;
+            }
+            .ticket-number { font-size: 14px; }
+            .truck-id { font-size: 18px; }
+            .loads-value { font-size: 16px; }
+
+            .data-grid {
+                grid-template-columns: 1fr; /* Una sola columna en celular */
+                gap: 10px;
+            }
+
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .action-icons {
+                width: 100%;
+                justify-content: flex-end;
+                margin-top: 5px;
+            }
+
+            .radio-circle {
+                top: 15px;
+                right: 15px;
+            }
         }
     </style>
 </head>
 <body>
 
-<canvas id="gameCanvas"></canvas>
+<div class="app-container">
+    <!-- Barra superior -->
+    <div class="top-bar">
+        <span style="font-size: 16px;">🔍</span>
+        <input type="text" class="search-input" placeholder="Search for Crew, EG, Crop, Ticket Number">
+        <button class="btn-approve">Approve</button>
+    </div>
 
-<div id="hud">
-    <div>🚀 Velocidad: <span class="hud-value" id="speed">0</span> km/h</div>
-    <div>📏 Altitud: <span class="hud-value" id="altitude">0</span> m</div>
-    <div>✈️ Estado: <span class="hud-value" id="state">En tierra</span></div>
-    <div id="warning" style="display:none;" class="warning">⚠️ ¡PELIGRO! ¡Muy bajo!</div>
-</div>
-
-<div id="controls-info">⬆⬇⬅➡ Acelerar ⚡ Frenar 🛑</div>
-
-<button id="btn-reset">↺</button>
-
-<div id="touch-controls">
-    <div class="control-btn" id="btn-up">▲</div>
-    <div class="control-btn" id="btn-down">▼</div>
-    <div class="control-btn" id="btn-left">◀</div>
-    <div class="control-btn" id="btn-right">▶</div>
-    <div class="control-btn" id="btn-throttle">⚡</div>
-    <div class="control-btn" id="btn-brake">🛑</div>
-    <div class="control-btn" id="btn-takeoff">🛫</div>
-    <div class="control-btn" id="btn-land">🛬</div>
+    <!-- Lista de Camiones -->
+    <div class="truck-list" id="truckList">
+        <!-- Se genera con JS -->
+    </div>
 </div>
 
 <script>
-// ============================================================
-//  AIR TRACTOR - VERSIÓN CORREGIDA (CONTROLES TÁCTILES FIJOS)
-// ============================================================
+    // 1. DATOS REALES
+    const trucksData = [
+        { ticket: "3942", truckId: "R-02", loads: 1, date: "19 Sep 2026 10:54:50 AM - 11:08:36 AM", implement: "GS Digger 20", field: "0032", netWeight: 0, loadConfirmation: 0, lightWeight: 23700 },
+        { ticket: "4018", truckId: "R-32", loads: 1, date: "19 Sep 2026 01:14:30 PM - 01:16:19 PM", implement: "GS Digger 24", field: "0082", netWeight: 0, loadConfirmation: 0, lightWeight: 20420 },
+        { ticket: "4021", truckId: "R-12", loads: 1, date: "19 Sep 2026 01:03:47 PM - 01:18:39 PM", implement: "GS Digger 15", field: "0032", netWeight: 21840, loadConfirmation: 21840, lightWeight: 21840 },
+        { ticket: "4023", truckId: "R-04", loads: 1, date: "19 Sep 2026 01:05:43 PM - 01:19:"20 PM", implement: "GS Digger 14", field: "0032", netWeight: 0, load dataConfirmation: 0,-index lightWeight: 0 }
+    ];
 
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
+   ="${ const truckListContainer =index document.getElementById('truckList');
 
-function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-}
-resizeCanvas();
-window.addEventListener('resize', resizeCanvas);
+    // 2. FUNCIÓN PARA CREAR LAS TARJETAS
+    function renderTrucks() {
+        truckListContainer.innerHTML = '';
 
-// ---------- ESTADO DEL AVIÓN ----------
-const plane = {
-    x: 0, y: 0, z: 0,
-    speed: 0,
-    pitch: 0,      // cabeceo
-    roll: 0,       // alabeo
-    yaw: 0,        // guiñada
-    throttle: 0,
-    flying: false,
-    onGround: true
-};
+        trucksData.forEach((truck, index) => {
+            const cardWrapper = document.createElement('div');
+            cardWrapper.className = 'card-wrapper';
 
-let cameraX = 0, cameraY = 0;
+            cardWrapper.innerHTML = `
+                <div class="truck-card">
+                    <!-- Panel Izquierdo Azul Oscuro -->
+                    <div class="left-panel">
+                        <div class="ticket-number">${truck.ticket}</div>
+                        <div class="truck-id">${truck.truckId}</div>
+                        <div class="loads-label">LOADS</div>
+                        <div class="loads-value">${truck.loads}</div>
+                    </div>
 
-// ---------- CONTROLES (se actualizan con eventos) ----------
-const controls = {
-    up: false,
-    down: false,
-    left: false,
-    right: false,
-    throttle: false,
-    brake: false
-};
+                    <!-- Panel Derecho de Datos -->
+                    <div class="right-panel">
+                        <!-- Cabecera -->
+                        <div class="card-header">
+                            <span class="date-time">${truck.date}</span>
+                            <span class="badge-potatoes">Potatoes</span>
+                            <div class="action-icons">
+                                <!-- BOTÓN ÚNICO: Save + Impresora -->
+                                <button class="btn-save-print" data-index="${index}">
+                                    🖨️ Save
+                                </button>
+                            </div>
+                        </div>
 
-// ---------- GENERAR MUNDO ----------
-const fields = [];
-const fieldColors = ['#8B7355','#A0522D','#CD853F','#D2691E','#8B4513','#DAA520','#B8860B','#9ACD32'];
-for (let i = 0; i < 70; i++) {
-    fields.push({
-        x: (Math.random() - 0.5) * 4500,
-        y: (Math.random() - 0.5) * 4500,
-        w: 40 + Math.random() * 140,
-        h: 40 + Math.random() * 140,
-        color: fieldColors[Math.floor(Math.random() * fieldColors.length)]
-    });
-}
+                        <!-- Cuerpo de datos -->
+                        <div class="data-grid">
+                            <div class="data-field">
+                                <label>Implement</label>
+                                <input type="text" value="${truck.implement}" readonly>
+                            </div>
+                            <div class="data-field">
+                                <label>Field</label>
+                                <input type="text" value="${truck.field}" readonly>
+                            </div>
+                            <div class="data-field">
+                                <label>Net Weight (lbs)</label>
+                                <input type="number" class="weight-input" value="${truck.netWeight}" data-field="netWeight" data-index="${index}">
+                            </div>
+                            <div class="data-field">
+                                <label>Load Confirmation (lbs)*</label>
+                                <input type="number" class="weight-input" value="${truck.loadConfirmation}" data-field="loadConfirmation}">
+                            </div>
+                            <div class="data-field">
+                                <label>Light Weight (lbs)</label>
+                                <input type="text" value="${truck.lightWeight}" readonly>
+                            </div>
+                        </div>
+                        <!-- Alerta de error -->
+                        <div class="alert-message" id="alert-${index}">⚠️ Error: El peso neto o confirmado debe ser mayor a 50 lbs para imprimir.</div>
+                    </div>
+                </div>
+                <!-- El circulito de selección (Movido a la esquina superior derecha del wrapper) -->
+                <div class="radio-circle" data-index="${index}"></div>
+            `;
 
-const trees = [];
-for (let i = 0; i < 180; i++) {
-    trees.push({
-        x: (Math.random() - 0.5) * 4800,
-        y: (Math.random() - 0.5) * 4800,
-        s: 2 + Math.random() * 5
-    });
-}
+            truckListContainer.appendChild(cardWrapper);
+        });
 
-const runways = [
-    { x: 0, y: 0, length: 700, width: 34, angle: 0 },
-    { x: 900, y: 700, length: 600, width: 30, angle: 0.8 },
-    { x: -850, y: -600, length: 620, width: 32, angle: -0.6 },
-    { x: 600, y: -900, length: 550, width: 28, angle: 1.2 }
-];
-
-// ---------- FUNCIONES DE CONTROL ----------
-function setupButton(id, controlName) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    const start = (e) => {
-        e.preventDefault();
-        controls[controlName] = true;
-        el.classList.add('active');
-    };
-    const end = (e) => {
-        e.preventDefault();
-        controls[controlName] = false;
-        el.classList.remove('active');
-    };
-    el.addEventListener('touchstart', start, { passive: false });
-    el.addEventListener('touchend', end, { passive: false });
-    el.addEventListener('touchcancel', end, { passive: false });
-    // También para mouse (debug en PC)
-    el.addEventListener('mousedown', start);
-    el.addEventListener('mouseup', end);
-    el.addEventListener('mouseleave', end);
-}
-
-setupButton('btn-up', 'up');
-setupButton('btn-down', 'down');
-setupButton('btn-left', 'left');
-setupButton('btn-right', 'right');
-setupButton('btn-throttle', 'throttle');
-setupButton('btn-brake', 'brake');
-
-// Botones especiales
-document.getElementById('btn-takeoff').addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    if (plane.onGround && plane.speed > 35) {
-        plane.flying = true;
-        plane.onGround = false;
-        plane.z = 1;
-        plane.pitch = 0.15;
+        attachEvents();
     }
-}, { passive: false });
-document.getElementById('btn-takeoff').addEventListener('mousedown', () => {
-    if (plane.onGround && plane.speed > 35) {
-        plane.flying = true;
-        plane.onGround = false;
-        plane.z = 1;
-        plane.pitch = 0.15;
+
+    // 3. LÓGICA DE SELECCIÓN Y VALIDACIÓN
+    let selectedIndex = null;
+
+    function attachEvents() {
+        // Evento para los Círculos de Selección
+        document.querySelectorAll('.radio-circle').forEach(circle => {
+            circle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const index = this.dataset.index;
+                
+                if (this.classList.contains('selected')) {
+                    this.classList.remove('selected');
+                    selectedIndex = null;
+                } else {
+                    document.querySelectorAll('.radio-circle').forEach(c => c.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedIndex = index;
+                }
+            });
+        });
+
+        // Evento para el BOTÓN ÚNICO (Save + Impresora)
+        document.querySelectorAll('.btn-save-print').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const index = this.dataset.index;
+                processPrint(index, this);
+            });
+        });
     }
-});
 
-document.getElementById('btn-land').addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    if (plane.flying && plane.z < 8) {
-        plane.flying = false;
-        plane.onGround = true;
-        plane.z = 0;
-        plane.pitch = 0;
-        plane.roll = 0;
-    }
-}, { passive: false });
-document.getElementById('btn-land').addEventListener('mousedown', () => {
-    if (plane.flying && plane.z < 8) {
-        plane.flying = false;
-        plane.onGround = true;
-        plane.z = 0;
-        plane.pitch = 0;
-        plane.roll = 0;
-    }
-});
+    // 4. FUNCIÓN PRINCIPAL: VALIDAR Y "IMPRIMIR" DIRECTAMENTE
+    function processPrint(index, btnElement) {
+        const truck = trucksData[index];
+        const netWeightInput = document.querySelector(`input[data-field="netWeight"][data-index="${index}"]`);
+        const loadConfInput = document.querySelector(`input[data-field="loadConfirmation"][data-index="${index}"]`);
+        const alertBox = document.getElementById(`alert-${index}`);
 
-document.getElementById('btn-reset').addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    resetPlane();
-}, { passive: false });
-document.getElementById('btn-reset').addEventListener('mousedown', resetPlane);
+        const netWeight = parseFloat(netWeightInput.value) || 0;
+        const loadConf = parseFloat(loadConfInput.value) || 0;
 
-function resetPlane() {
-    plane.x = 0; plane.y = 0; plane.z = 0;
-    plane.speed = 0;
-    plane.pitch = 0; plane.roll = 0; plane.yaw = 0;
-    plane.throttle = 0;
-    plane.flying = false;
-    plane.onGround = true;
-    controls.up = controls.down = controls.left = controls.right = false;
-    controls.throttle = false; controls.brake = false;
-    document.querySelectorAll('.control-btn').forEach(el => el.classList.remove('active'));
-}
+        // --- REGLA: Si es 0 o menor a 50, no imprimir ---
+        if (netWeight < 50 || loadConf < 50) {
+            alertBox.style.display = 'block';
+            netWeightInput.style.borderColor = 'red';
+            loadConfInput.style.borderColor = 'red';
+            
+            setTimeout(() => {
+                netWeightInput.style.borderColor = '#ccc';
+                loadConfInput.style.borderColor = '#ccc';
+            }, 1500);
 
-// ---------- ACTUALIZACIÓN FÍSICA ----------
-function update() {
-    // Acelerador / freno
-    if (controls.throttle) plane.throttle = Math.min(1, plane.throttle + 0.02);
-    if (controls.brake) plane.throttle = Math.max(0, plane.throttle - 0.04);
-
-    // Cabeceo
-    if (controls.up) plane.pitch = Math.min(0.5, plane.pitch + 0.025);
-    if (controls.down) plane.pitch = Math.max(-0.3, plane.pitch - 0.025);
-    if (!controls.up && !controls.down) plane.pitch *= 0.93;
-
-    // Alabeo
-    if (controls.left) plane.roll = Math.max(-0.5, plane.roll - 0.025);
-    if (controls.right) plane.roll = Math.min(0.5, plane.roll + 0.025);
-    if (!controls.left && !controls.right) plane.roll *= 0.93;
-
-    // Física
-    const accel = plane.throttle * 9;
-    const drag = plane.speed * 0.018;
-    plane.speed += (accel - drag) * 0.016;
-    plane.speed = Math.max(0, Math.min(190, plane.speed));
-
-    const radYaw = plane.yaw;
-
-    if (plane.flying) {
-        // Vuelo
-        plane.x += Math.cos(radYaw) * Math.cos(plane.roll) * plane.speed * 0.08;
-        plane.y += Math.sin(radYaw) * Math.cos(plane.roll) * plane.speed * 0.08;
-        plane.z += Math.sin(plane.pitch) * plane.speed * 0.045;
-
-        // Gravedad y pérdida
-        if (plane.speed < 35) {
-            plane.z = Math.max(0, plane.z - 0.2);
-            if (plane.z <= 0) {
-                plane.z = 0;
-                plane.flying = false;
-                plane.onGround = true;
-                plane.pitch = 0;
-            }
+            setTimeout(() => {
+                alertBox.style.display = 'none';
+            }, 3000);
+            return;
         }
-        // Giro con alabeo
-        if (Math.abs(plane.roll) > 0.08) {
-            plane.yaw += plane.roll * 0.018;
+
+        // --- SI PASA, IMPRIMIR DIRECTAMENTE ---
+        alertBox.style.display = 'none';
+        
+        if (btnElement) {
+            const originalText = btnElement.innerHTML;
+            btnElement.innerHTML = '⏳ Imprimiendo...';
+            btnElement.style.backgroundColor = '#6c757d';
+            
+            setTimeout(() => {
+                btnElement.innerHTML = '✔ Impreso';
+                btnElement.style.backgroundColor = '#28a745';
+                
+                setTimeout(() => {
+                    btnElement.innerHTML = originalText;
+                    btnElement.style.backgroundColor = '#007bff';
+                }, 2000);
+            }, 800);
         }
-    } else {
-        // En tierra
-        plane.x += Math.cos(radYaw) * plane.speed * 0.08;
-        plane.y += Math.sin(radYaw) * plane.speed * 0.08;
-        plane.speed *= 0.97;
-        // Frenado natural
-        if (plane.speed < 0.5) plane.speed = 0;
+
+        console.log(`✅ Imprimiendo ticket ${truck.ticket} - Net: ${netWeight}, Load: ${loadConf}`);
     }
 
-    // Límites
-    plane.z = Math.max(0, Math.min(280, plane.z));
-
-    // Cámara
-    cameraX = plane.x;
-    cameraY = plane.y;
-
-    // HUD
-    document.getElementById('speed').textContent = Math.round(plane.speed * 3.6);
-    document.getElementById('altitude').textContent = Math.round(plane.z);
-    document.getElementById('state').textContent = plane.flying ? 'Volando ✈️' : 'En tierra 🚜';
-
-    const warn = document.getElementById('warning');
-    if (plane.flying && plane.z < 6 && plane.speed > 30) {
-        warn.style.display = 'block';
-    } else {
-        warn.style.display = 'none';
-    }
-}
-
-// ---------- DIBUJO ----------
-function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Cielo
-    const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    grad.addColorStop(0, '#4A90D9');
-    grad.addColorStop(0.6, '#87CEEB');
-    grad.addColorStop(1, '#E8D5B5');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    const zoom = Math.max(0.5, 1.3 - plane.z * 0.002);
-    ctx.save();
-    ctx.translate(canvas.width/2 - cameraX * zoom, canvas.height/2 - cameraY * zoom);
-    ctx.scale(zoom, zoom);
-
-    // Suelo
-    ctx.fillStyle = '#7BA86A';
-    ctx.fillRect(-2800, -2800, 5600, 5600);
-    for (let i = 0; i < 400; i++) {
-        const x = ((i * 173) % 5600) - 2800;
-        const y = ((i * 311) % 5600) - 2800;
-        ctx.fillStyle = '#6A9A5A';
-        ctx.fillRect(x, y, 2, 2);
-    }
-
-    // Campos
-    fields.forEach(f => {
-        ctx.fillStyle = f.color;
-        ctx.fillRect(f.x, f.y, f.w, f.h);
-        ctx.strokeStyle = '#5A4A3A';
-        ctx.lineWidth = 0.5;
-        for (let i = 0; i < f.w; i += 7) {
-            ctx.beginPath();
-            ctx.moveTo(f.x + i, f.y);
-            ctx.lineTo(f.x + i, f.y + f.h);
-            ctx.stroke();
-        }
-    });
-
-    // Árboles
-    trees.forEach(t => {
-        ctx.fillStyle = '#5A3A2A';
-        ctx.fillRect(t.x-1, t.y-1, 2, 4);
-        ctx.fillStyle = '#2D7D46';
-        ctx.beginPath();
-        ctx.arc(t.x, t.y-2, t.s, 0, Math.PI*2);
-        ctx.fill();
-    });
-
-    // Pistas
-    runways.forEach(r => {
-        ctx.save();
-        ctx.translate(r.x, r.y);
-        ctx.rotate(r.angle);
-        ctx.fillStyle = '#6A6A6A';
-        ctx.fillRect(-r.length/2, -r.width/2, r.length, r.width);
-        ctx.strokeStyle = '#FFFFFF';
-        ctx.lineWidth = 2;
-        ctx.setLineDash([12, 12]);
-        ctx.beginPath();
-        ctx.moveTo(-r.length/2 + 10, 0);
-        ctx.lineTo(r.length/2 - 10, 0);
-        ctx.stroke();
-        ctx.setLineDash([]);
-        ctx.restore();
-    });
-
-    // Avión
-    ctx.save();
-    ctx.translate(plane.x, plane.y);
-    ctx.rotate(plane.yaw);
-
-    if (plane.flying) {
-        ctx.fillStyle = 'rgba(0,0,0,0.25)';
-        ctx.beginPath();
-        ctx.ellipse(0, -plane.z, 20, 6, 0, 0, Math.PI*2);
-        ctx.fill();
-    }
-
-    // Cuerpo
-    ctx.fillStyle = '#C41E3A';
-    ctx.fillRect(-14, -2.5, 28, 5);
-    // Nariz
-    ctx.fillStyle = '#A01830';
-    ctx.beginPath();
-    ctx.arc(14, 0, 2.5, -Math.PI/2, Math.PI/2);
-    ctx.fill();
-    // Cabina
-    ctx.fillStyle = '#3A6BB5';
-    ctx.beginPath();
-    ctx.arc(1, -1.5, 3.5, 0, Math.PI*2);
-    ctx.fill();
-    // Alas
-    ctx.fillStyle = '#A01830';
-    ctx.fillRect(-9, -7, 18, 11);
-    // Motor
-    ctx.fillStyle = '#333';
-    ctx.fillRect(10, -1.2, 3.5, 2.4);
-    // Hélice
-    if (plane.throttle > 0.05) {
-        ctx.fillStyle = '#666';
-        ctx.beginPath();
-        ctx.ellipse(13.5, 0, 1.8, 5, 0, 0, Math.PI*2);
-        ctx.fill();
-    }
-    // Cola
-    ctx.fillStyle = '#A01830';
-    ctx.fillRect(-18, -4.5, 6, 9);
-    // Ruedas
-    ctx.fillStyle = '#222';
-    ctx.fillRect(-7, 2.5, 3.5, 1.8);
-    ctx.fillRect(4, 2.5, 3.5, 1.8);
-
-    ctx.restore();
-    ctx.restore();
-}
-
-// ---------- LOOP ----------
-function loop() {
-    update();
-    draw();
-    requestAnimationFrame(loop);
-}
-
-// Prevenir scroll
-document.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
-
-loop();
-
-// Aviso de inicio
-console.log('✅ Air Tractor corregido - Toca los botones para volar');
+    renderTrucks();
 </script>
+
 </body>
 </html>
