@@ -22,7 +22,7 @@
         /* --- CONTENEDOR PRINCIPAL --- */
         .app-container {
             width: 100%;
-            max-width: 1000px; /* Un poco más ancho para la pestaña de historial */
+            max-width: 1000px;
             background-color: #ffffff;
             border: 1px solid #ccc;
             border-radius: 4px;
@@ -154,9 +154,8 @@
             margin-bottom: 2px;
         }
 
-        /* --- CAMBIO: TROQUE ID MÁS GRANDE --- */
         .truck-id {
-            font-size: 32px; /* Aumentado de 24px a 32px */
+            font-size: 32px;
             font-weight: 900;
             margin-bottom: 15px;
         }
@@ -252,9 +251,8 @@
             background-color: #2563eb;
         }
 
-        /* --- CAMBIO: ICONO DE IMPRESORA MÁS GRANDE --- */
         .btn-save-print .icon {
-            font-size: 18px; /* Aumentado de 14px a 18px */
+            font-size: 18px;
         }
 
         /* --- CUERPO DE DATOS (3 COLUMNAS) --- */
@@ -277,7 +275,7 @@
             font-weight: 400;
         }
 
-        /* --- CAMBIO: INPUTS EDITABLES --- */
+        /* --- INPUTS EDITABLES --- */
         .data-field input {
             font-size: 14px;
             font-weight: 600;
@@ -321,19 +319,6 @@
             border-color: #3b82f6;
             background-color: #3b82f6;
             box-shadow: inset 0 0 0 3px #ffffff, 0 0 5px rgba(59, 130, 246, 0.5);
-        }
-
-        /* --- MENSAJE DE ALERTA --- */
-        .alert-message {
-            display: none;
-            background-color: #fee2e2;
-            color: #991b1b;
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-size: 12px;
-            border: 1px solid #fecaca;
-            margin-top: 5px;
-            width: 100%;
         }
 
         /* --- SCROLLBAR --- */
@@ -423,7 +408,7 @@
         trucksData.forEach((truck, index) => {
             const cardWrapper = document.createElement('div');
             cardWrapper.className = 'truck-card';
-            cardWrapper.dataset.index = index; // Guardamos el índice en el DOM
+            cardWrapper.dataset.index = index;
 
             cardWrapper.innerHTML = `
                 <div class="left-panel">
@@ -448,7 +433,6 @@
                         </div>
                         <div class="header-right">
                             <span class="badge-potatoes">Potatoes</span>
-                            <!-- Botón con icono más grande -->
                             <button class="btn-save-print" data-index="${index}">
                                 <span class="icon">🖨️</span> Save
                             </button>
@@ -473,7 +457,7 @@
                             <label>Storage</label>
                             <input type="text" value="${truck.storage}" readonly>
                         </div>
-                        <!-- Net Weight y Gross Weight son editables -->
+                        <!-- Net Weight y Gross Weight son totalmente editables -->
                         <div class="data-field">
                             <label>Net Weight (lbs)</label>
                             <input type="number" class="editable-weight" value="${truck.netWeight}" data-field="netWeight" data-index="${index}">
@@ -488,7 +472,6 @@
                             <input type="text" value="${truck.lightWeight}" readonly>
                         </div>
                     </div>
-                    <div class="alert-message" id="alert-${index}">⚠️ Error: El peso neto debe ser mayor a 50 lbs para imprimir.</div>
                 </div>
                 
                 <div class="radio-circle" data-index="${index}"></div>
@@ -500,7 +483,7 @@
         attachEvents();
     }
 
-    // 3. LÓGICA DE SELECCIÓN Y VALIDACIÓN
+    // 3. LÓGICA DE SELECCIÓN Y BOTÓN DE IMPRESIÓN
     let selectedIndex = null;
 
     function attachEvents() {
@@ -527,15 +510,14 @@
                 e.stopPropagation();
                 const index = this.dataset.index;
 
-                // --- REGLA: Solo imprimir el que está seleccionado ---
+                // --- REGLA 1: Si NO hay nada seleccionado, no hace NADA ---
                 if (selectedIndex === null) {
-                    alert("Por favor, seleccione un camión (haga clic en el círculo a la derecha) antes de imprimir.");
-                    return;
+                    return; // Simplemente no hace nada, sin mensajes
                 }
 
+                // --- REGLA 2: Si el botón presionado NO es el seleccionado, no hace NADA ---
                 if (selectedIndex !== index) {
-                    alert("Error: Solo puede imprimir el camión que tiene seleccionado actualmente.");
-                    return;
+                    return; 
                 }
 
                 // Si es el correcto, procedemos a imprimir
@@ -547,31 +529,20 @@
     // 4. FUNCIÓN DE IMPRESIÓN Y ENVÍO A HISTORIAL
     function processPrint(index, btnElement) {
         const truck = trucksData[index];
-        const alertBox = document.getElementById(`alert-${index}`);
         
-        // Obtenemos los valores ACTUALES de los inputs (por si el usuario los editó)
+        // Obtenemos los valores ACTUALES de los inputs
         const netWeightInput = document.querySelector(`input[data-field="netWeight"][data-index="${index}"]`);
         const grossWeightInput = document.querySelector(`input[data-field="grossWeight"][data-index="${index}"]`);
         
         const netWeight = parseFloat(netWeightInput.value) || 0;
         const grossWeight = parseFloat(grossWeightInput.value) || 0;
 
-        // Validación: Si el Net Weight es menor a 50, no imprime
+        // --- REGLA 3: Si el Net Weight es menor a 50, no imprime NADA ---
         if (netWeight < 50) {
-            alertBox.style.display = 'block';
-            netWeightInput.style.borderBottom = '2px solid red';
-            
-            setTimeout(() => {
-                alertBox.style.display = 'none';
-                netWeightInput.style.borderBottom = '1px solid #eee';
-            }, 3000);
-            return;
+            return; // Simplemente no hace nada, sin mensajes
         }
 
-        // Limpiamos alertas previas
-        alertBox.style.display = 'none';
-
-        // Simular impresión directa
+        // Si pasa todas las validaciones, IMPRIMIR DIRECTAMENTE
         if (btnElement) {
             const originalHTML = btnElement.innerHTML;
             btnElement.innerHTML = '<span class="icon">⏳</span> Imprimiendo...';
@@ -585,7 +556,6 @@
                     // --- ACCIÓN: Mover a Historial ---
                     moveToHistory(index, netWeight, grossWeight);
                     
-                    // Restaurar botón (por si acaso, aunque la tarjeta va a desaparecer)
                     btnElement.innerHTML = originalHTML;
                     btnElement.style.backgroundColor = '#3b82f6';
                 }, 1000);
@@ -606,14 +576,13 @@
             <span style="color: #10b981; font-weight: bold;">✔ Impreso</span>
         `;
         
-        // Si el historial tiene el mensaje de "No hay registros", lo eliminamos
         if (historyListContainer.querySelector('p')) {
             historyListContainer.innerHTML = '';
         }
         
         historyListContainer.appendChild(historyItem);
 
-        // 2. Eliminar la tarjeta de la vista de Queue (simulando que ya se procesó)
+        // 2. Eliminar la tarjeta de la vista de Queue
         const cardToRemove = document.querySelector(`.truck-card[data-index="${index}"]`);
         if (cardToRemove) {
             cardToRemove.remove();
