@@ -69,7 +69,7 @@
             gap: 10px;
             padding: 10px;
             background-color: #e9ecef;
-            height: 80vh; /* Altura adaptable */
+            height: 80vh;
             overflow-y: auto;
         }
 
@@ -81,7 +81,6 @@
             border-radius: 4px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             overflow: hidden;
-            /* Aseguramos que en pantallas pequeñas no se aplaste */
             flex-wrap: wrap; 
         }
 
@@ -131,7 +130,7 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
-            min-width: 300px; /* Asegura que los inputs no se aplasten */
+            min-width: 300px;
         }
 
         /* --- CABECERA DE LA TARJETA --- */
@@ -139,7 +138,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap; /* Permite que los elementos bajen si no caben */
+            flex-wrap: wrap;
             gap: 8px;
             font-size: 12px;
             color: #333;
@@ -149,7 +148,7 @@
 
         .date-time {
             font-weight: 500;
-            width: 100%; /* En móvil ocupa toda la línea */
+            width: 100%;
             margin-bottom: 5px;
         }
 
@@ -241,7 +240,7 @@
             cursor: pointer;
             position: absolute;
             right: 20px;
-            top: 20px; /* Posicionado arriba a la derecha para no chocar con Save */
+            top: 20px;
             transition: all 0.2s ease;
             box-shadow: 0 0 3px rgba(0,0,0,0.2);
             z-index: 10;
@@ -273,7 +272,7 @@
         /* --- MEDIA QUERIES PARA MÓVILES --- */
         @media (max-width: 600px) {
             .left-panel {
-                width: 90px; /* Más angosto en celular */
+                width: 90px;
                 padding: 10px 2px;
             }
             .ticket-number { font-size: 14px; }
@@ -281,7 +280,7 @@
             .loads-value { font-size: 16px; }
 
             .data-grid {
-                grid-template-columns: 1fr; /* Una sola columna en celular */
+                grid-template-columns: 1fr;
                 gap: 10px;
             }
 
@@ -325,10 +324,10 @@
         { ticket: "3942", truckId: "R-02", loads: 1, date: "19 Sep 2026 10:54:50 AM - 11:08:36 AM", implement: "GS Digger 20", field: "0032", netWeight: 0, loadConfirmation: 0, lightWeight: 23700 },
         { ticket: "4018", truckId: "R-32", loads: 1, date: "19 Sep 2026 01:14:30 PM - 01:16:19 PM", implement: "GS Digger 24", field: "0082", netWeight: 0, loadConfirmation: 0, lightWeight: 20420 },
         { ticket: "4021", truckId: "R-12", loads: 1, date: "19 Sep 2026 01:03:47 PM - 01:18:39 PM", implement: "GS Digger 15", field: "0032", netWeight: 21840, loadConfirmation: 21840, lightWeight: 21840 },
-        { ticket: "4023", truckId: "R-04", loads: 1, date: "19 Sep 2026 01:05:43 PM - 01:19:"20 PM", implement: "GS Digger 14", field: "0032", netWeight: 0, load dataConfirmation: 0,-index lightWeight: 0 }
+        { ticket: "4023", truckId: "R-04", loads: 1, date: "19 Sep 2026 01:05:43 PM - 01:19:20 PM", implement: "GS Digger 14", field: "0032", netWeight: 0, loadConfirmation: 0, lightWeight: 0 }
     ];
 
-   ="${ const truckListContainer =index document.getElementById('truckList');
+    const truckListContainer = document.getElementById('truckList');
 
     // 2. FUNCIÓN PARA CREAR LAS TARJETAS
     function renderTrucks() {
@@ -338,9 +337,9 @@
             const cardWrapper = document.createElement('div');
             cardWrapper.className = 'card-wrapper';
 
-            cardWrapper.innerHTML = `
+            // Usamos template literals pero aseguramos que no haya errores de sintaxis
+            const cardHTML = `
                 <div class="truck-card">
-                    <!-- Panel Izquierdo Azul Oscuro -->
                     <div class="left-panel">
                         <div class="ticket-number">${truck.ticket}</div>
                         <div class="truck-id">${truck.truckId}</div>
@@ -348,21 +347,17 @@
                         <div class="loads-value">${truck.loads}</div>
                     </div>
 
-                    <!-- Panel Derecho de Datos -->
                     <div class="right-panel">
-                        <!-- Cabecera -->
                         <div class="card-header">
                             <span class="date-time">${truck.date}</span>
                             <span class="badge-potatoes">Potatoes</span>
                             <div class="action-icons">
-                                <!-- BOTÓN ÚNICO: Save + Impresora -->
                                 <button class="btn-save-print" data-index="${index}">
                                     🖨️ Save
                                 </button>
                             </div>
                         </div>
 
-                        <!-- Cuerpo de datos -->
                         <div class="data-grid">
                             <div class="data-field">
                                 <label>Implement</label>
@@ -378,21 +373,20 @@
                             </div>
                             <div class="data-field">
                                 <label>Load Confirmation (lbs)*</label>
-                                <input type="number" class="weight-input" value="${truck.loadConfirmation}" data-field="loadConfirmation}">
+                                <input type="number" class="weight-input" value="${truck.loadConfirmation}" data-field="loadConfirmation" data-index="${index}">
                             </div>
                             <div class="data-field">
                                 <label>Light Weight (lbs)</label>
                                 <input type="text" value="${truck.lightWeight}" readonly>
                             </div>
                         </div>
-                        <!-- Alerta de error -->
                         <div class="alert-message" id="alert-${index}">⚠️ Error: El peso neto o confirmado debe ser mayor a 50 lbs para imprimir.</div>
                     </div>
                 </div>
-                <!-- El circulito de selección (Movido a la esquina superior derecha del wrapper) -->
                 <div class="radio-circle" data-index="${index}"></div>
             `;
 
+            cardWrapper.innerHTML = cardHTML;
             truckListContainer.appendChild(cardWrapper);
         });
 
@@ -420,7 +414,7 @@
             });
         });
 
-        // Evento para el BOTÓN ÚNICO (Save + Impresora)
+        // Evento para el BOTÓN ÚNICO
         document.querySelectorAll('.btn-save-print').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -430,7 +424,7 @@
         });
     }
 
-    // 4. FUNCIÓN PRINCIPAL: VALIDAR Y "IMPRIMIR" DIRECTAMENTE
+    // 4. FUNCIÓN PRINCIPAL: VALIDAR Y "IMPRIMIR"
     function processPrint(index, btnElement) {
         const truck = trucksData[index];
         const netWeightInput = document.querySelector(`input[data-field="netWeight"][data-index="${index}"]`);
@@ -479,6 +473,7 @@
         console.log(`✅ Imprimiendo ticket ${truck.ticket} - Net: ${netWeight}, Load: ${loadConf}`);
     }
 
+    // Iniciar todo
     renderTrucks();
 </script>
 
